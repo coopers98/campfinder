@@ -18,6 +18,21 @@ class CampMatcher
 
     protected ?array $userLocation = null;
 
+    // Fallback: map common neighborhoods to boroughs
+    protected array $neighborhoodToBorough = [
+        'park slope' => 'Brooklyn', 'williamsburg' => 'Brooklyn', 'dumbo' => 'Brooklyn',
+        'brooklyn heights' => 'Brooklyn', 'cobble hill' => 'Brooklyn', 'bushwick' => 'Brooklyn',
+        'bay ridge' => 'Brooklyn', 'crown heights' => 'Brooklyn', 'prospect park' => 'Brooklyn',
+        'upper west side' => 'Manhattan', 'upper east side' => 'Manhattan', 'chelsea' => 'Manhattan',
+        'tribeca' => 'Manhattan', 'midtown' => 'Manhattan', 'east village' => 'Manhattan',
+        'harlem' => 'Manhattan', 'flatiron' => 'Manhattan', 'soho' => 'Manhattan',
+        'west village' => 'Manhattan', 'lower east side' => 'Manhattan',
+        'astoria' => 'Queens', 'long island city' => 'Queens', 'lic' => 'Queens',
+        'forest hills' => 'Queens', 'jackson heights' => 'Queens', 'flushing' => 'Queens',
+        'riverdale' => 'Bronx', 'pelham bay' => 'Bronx', 'van cortlandt' => 'Bronx',
+        'st. george' => 'Staten Island', 'willowbrook' => 'Staten Island',
+    ];
+
     protected array $summerWeeks = [
         '2026-06-15', '2026-06-22', '2026-06-29',
         '2026-07-06', '2026-07-13', '2026-07-20', '2026-07-27',
@@ -47,6 +62,14 @@ class CampMatcher
         $budget = $parsedCriteria['budget_cents_per_week'] ?? 50000;
         $schedulePref = $parsedCriteria['schedule_preference'] ?? 'any';
         $preferSameFacility = $parsedCriteria['prefer_same_facility'] ?? false;
+
+        // Resolve neighborhood to borough if needed
+        if ($borough && !isset($this->boroughCenters[$borough])) {
+            $resolved = $this->neighborhoodToBorough[strtolower($borough)] ?? null;
+            if ($resolved) {
+                $borough = $resolved;
+            }
+        }
 
         // Set user location from borough for distance calculations
         if ($borough && isset($this->boroughCenters[$borough])) {

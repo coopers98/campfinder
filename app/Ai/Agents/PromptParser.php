@@ -27,7 +27,7 @@ Extract structured information from a parent's request about summer camps for th
 
 Parse the free text and identify:
 - Each child mentioned (name or label, age, interests/preferred categories)
-- Location preference (borough or neighborhood)
+- Location preference (ALWAYS resolve to a borough: Manhattan, Brooklyn, Queens, Bronx, or Staten Island. If the user mentions a neighborhood like "Park Slope" or "Astoria", return the borough it belongs to.)
 - Budget per week per child (in cents, e.g. $400 = 40000)
 - Schedule preference (full_day, half_day_am, half_day_pm, or any)
 - Whether siblings should be at the same facility
@@ -47,6 +47,7 @@ CATEGORY MAPPING (map interests to these exact values):
 If a child has no specific interest, use ["general"].
 If no budget specified, use 50000 (i.e. $500).
 If no borough specified, leave as empty string.
+Borough must be one of: Manhattan, Brooklyn, Queens, Bronx, Staten Island (exact spelling).
 If no name given, use "Child 1", "Child 2", etc.
 Default prefer_same_facility to true when multiple children are mentioned.
 INSTRUCTIONS;

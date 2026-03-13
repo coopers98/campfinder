@@ -118,6 +118,16 @@
                             <span class="text-sm text-gray-500">Total:</span>
                             <span class="text-lg font-bold text-gray-900" x-text="formatPrice(calcTotal())"></span>
                         </div>
+                        <template x-if="getLocation()">
+                            <div class="flex items-center gap-1 text-sm text-gray-500">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span x-text="getLocation()"></span>
+                                <span class="text-gray-400">(distances from here)</span>
+                            </div>
+                        </template>
                         <template x-if="hasLockedOrBlocked()">
                             <div class="flex items-center gap-2">
                                 <template x-if="countLocked() > 0">
@@ -313,16 +323,20 @@
                                                                     <span class="text-xs font-semibold text-gray-900 leading-tight truncate"
                                                                           x-text="opt.camp_name"></span>
                                                                     <template x-if="siblingMatchType(week, cIdx, opt) === 'camp'">
-                                                                        <span class="shrink-0 text-[10px] bg-purple-200 text-purple-700 px-1 rounded font-bold" title="Same camp available for sibling">SAME</span>
+                                                                        <span class="shrink-0 text-[10px] px-1 rounded-sm font-bold border"
+                                                                              :class="siblingBadgeBg[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeText[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeBorder[siblingMatchChildIdx(week, cIdx, opt) % 4]"
+                                                                              :title="'Same camp as ' + (results.children[siblingMatchChildIdx(week, cIdx, opt)]?.name || 'sibling')">SAME</span>
                                                                     </template>
                                                                     <template x-if="siblingMatchType(week, cIdx, opt) === 'facility'">
-                                                                        <span class="shrink-0 text-[10px] bg-purple-100 text-purple-600 px-1 rounded font-bold" title="Same facility available for sibling">FAC</span>
+                                                                        <span class="shrink-0 text-[10px] px-1 rounded-sm font-bold border"
+                                                                              :class="siblingBadgeBg[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeText[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeBorder[siblingMatchChildIdx(week, cIdx, opt) % 4]"
+                                                                              :title="'Same facility as ' + (results.children[siblingMatchChildIdx(week, cIdx, opt)]?.name || 'sibling')">FAC</span>
                                                                     </template>
                                                                 </div>
                                                                 <div class="flex items-center gap-1.5 mt-0.5">
                                                                     <span class="text-xs font-bold" x-text="formatPrice(opt.price_cents)"></span>
                                                                     <template x-if="opt.lunch_provided">
-                                                                        <span class="text-[10px] text-sawyer-500" title="Lunch included">+L</span>
+                                                                        <span class="text-[10px] text-gray-500" title="Lunch included">🥪 Lunch</span>
                                                                     </template>
                                                                     <template x-if="opt.distance_miles !== null">
                                                                         <span class="text-[10px] text-gray-400" x-text="opt.distance_miles + 'mi'"></span>
@@ -499,6 +513,9 @@ function campFinder() {
         ],
 
         childColors: ['bg-sawyer-500', 'bg-indigo-600', 'bg-rose-600', 'bg-amber-600'],
+        siblingBadgeBg: ['bg-sawyer-100', 'bg-indigo-100', 'bg-rose-100', 'bg-amber-100'],
+        siblingBadgeText: ['text-sawyer-700', 'text-indigo-700', 'text-rose-700', 'text-amber-700'],
+        siblingBadgeBorder: ['border-sawyer-300', 'border-indigo-300', 'border-rose-300', 'border-amber-300'],
 
         categoryEmoji: {
             sports: '⚽',
@@ -557,6 +574,13 @@ function campFinder() {
 
         globalWeekIndex(weekStart) {
             return this.weekStarts.indexOf(weekStart);
+        },
+
+        getLocation() {
+            // Use resolved borough from plan data, fall back to parsed criteria
+            if (this.results?.children?.[0]?.borough) return this.results.children[0].borough;
+            if (this.parsedCriteria?.borough) return this.parsedCriteria.borough;
+            return null;
         },
 
         prevMonth() {
@@ -774,15 +798,29 @@ function campFinder() {
         siblingMatchType(week, cIdx, opt) {
             if (!this.results || this.results.children.length < 2) return null;
             let hasFacility = false;
+            let matchIdx = -1;
             for (let i = 0; i < this.results.children.length; i++) {
                 if (i === cIdx) continue;
                 const otherWeek = this.results.children[i].weeks.find(w => w.week_start === week.week_start);
                 if (!otherWeek || otherWeek.blocked) continue;
                 const otherOpts = otherWeek.options || [];
                 if (otherOpts.some(o => o.camp_name === opt.camp_name && o.facility_id === opt.facility_id)) return 'camp';
-                if (otherOpts.some(o => o.facility_id === opt.facility_id)) hasFacility = true;
+                if (otherOpts.some(o => o.facility_id === opt.facility_id)) { hasFacility = true; matchIdx = i; }
             }
             return hasFacility ? 'facility' : null;
+        },
+
+        // Returns the index of the sibling child that shares a facility with this option
+        siblingMatchChildIdx(week, cIdx, opt) {
+            if (!this.results || this.results.children.length < 2) return -1;
+            for (let i = 0; i < this.results.children.length; i++) {
+                if (i === cIdx) continue;
+                const otherWeek = this.results.children[i].weeks.find(w => w.week_start === week.week_start);
+                if (!otherWeek || otherWeek.blocked) continue;
+                const otherOpts = otherWeek.options || [];
+                if (otherOpts.some(o => o.facility_id === opt.facility_id)) return i;
+            }
+            return -1;
         },
 
         optionRowClass(week, cIdx, oIdx, opt) {
