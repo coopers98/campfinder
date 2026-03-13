@@ -509,7 +509,7 @@
              style="position:relative;width:100%;max-width:32rem;max-height:85vh;z-index:9991;border-radius:1rem;overflow:hidden;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);"
              class="bg-white">
             {{-- Header --}}
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div style="flex-shrink:0;padding:1rem 1.5rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;">
                 <div class="flex items-center gap-3">
                     <div style="width:2.5rem;height:2.5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="bg-sawyer-100">
                         <svg style="width:1.25rem;height:1.25rem;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -529,7 +529,7 @@
             </div>
 
             {{-- Invoice body --}}
-            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+            <div style="flex:1 1 0%;overflow-y:auto;padding:1rem 1.5rem;min-height:0;" class="space-y-5">
                 <template x-for="(child, cIdx) in results?.children || []" :key="cIdx">
                     <div>
                         {{-- Child name bar --}}
