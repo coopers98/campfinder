@@ -294,7 +294,7 @@
                                         <div class="h-full min-h-[100px] flex flex-col items-center justify-center">
                                             <div class="text-sm text-gray-400 font-medium">Off</div>
                                             <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="mt-1 text-xs text-sawyer-500 hover:text-sawyer-700">Unblock</button>
+                                                    class="mt-1 text-[10px] font-medium px-2 py-0.5 rounded border border-sawyer-300 text-sawyer-500 hover:bg-sawyer-50 transition-colors">Unblock</button>
                                         </div>
                                     </template>
 
@@ -465,15 +465,15 @@
                                             {{-- Lock + Block row --}}
                                             <div class="flex items-center justify-between px-1 pt-1.5 border-t border-gray-100 mt-1">
                                                 <button @click.stop="toggleBlock(cIdx, week.week_start)"
-                                                        class="text-xs font-medium px-2 py-0.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                                                    Block
+                                                        class="text-[10px] font-medium px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors">
+                                                    Block Week
                                                 </button>
                                                 <button @click.stop="toggleLock(cIdx, globalWeekIndex(week.week_start))"
-                                                        class="text-xs font-medium px-2 py-0.5 rounded transition-colors"
+                                                        class="text-[10px] font-medium px-2 py-0.5 rounded border transition-colors"
                                                         :class="week.locked
-                                                            ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                                                            : 'text-gray-400 hover:text-sawyer-500 hover:bg-sawyer-50'">
-                                                    <span x-text="week.locked ? 'Locked' : 'Lock'"></span>
+                                                            ? 'border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                                                            : 'border-sawyer-300 text-sawyer-500 hover:bg-sawyer-50 hover:border-sawyer-400'">
+                                                    <span x-text="week.locked ? 'Locked' : 'Lock Selection'"></span>
                                                 </button>
                                             </div>
                                         </div>
@@ -484,7 +484,7 @@
                                         <div class="min-h-[100px] flex flex-col items-center justify-center">
                                             <div class="text-sm text-gray-300">No match</div>
                                             <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="mt-1 text-xs text-gray-400 hover:text-red-500">Block</button>
+                                                    class="mt-1 text-[10px] font-medium px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors">Block Week</button>
                                         </div>
                                     </template>
                                 </div>
