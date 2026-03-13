@@ -12,7 +12,7 @@ class SearchCamps implements Tool
 {
     public function description(): Stringable|string
     {
-        return 'Search for available summer camps by age, category, borough, week, price, and schedule type. Returns up to 20 matching camps with key details. Use this to find camps that match a child\'s criteria.';
+        return 'Search for summer camps across ALL weeks at once. Returns up to 50 results sorted by week. Use broad searches (e.g. just age) to get an overview, then narrow down. Do NOT call this once per week — one call covers the whole summer.';
     }
 
     public function handle(Request $request): Stringable|string
@@ -44,29 +44,27 @@ class SearchCamps implements Tool
         }
 
         $camps = $query->orderBy('week_start')
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(fn (Camp $camp) => [
                 'id' => $camp->id,
                 'name' => $camp->name,
-                'facility_id' => $camp->facility_id,
-                'facility_name' => $camp->facility->name,
-                'borough' => $camp->facility->borough,
-                'neighborhood' => $camp->facility->neighborhood,
-                'category' => $camp->category,
-                'age_range' => "{$camp->age_min}-{$camp->age_max}",
-                'week_start' => $camp->week_start->toDateString(),
-                'schedule_type' => $camp->schedule_type,
-                'price' => $camp->formatted_price,
-                'price_cents' => $camp->price_cents,
-                'availability' => $camp->availability_status,
-                'spots_remaining' => $camp->is_full ? 0 : $camp->spots_remaining,
-                'waitlist_count' => $camp->waitlist_count,
-                'lunch_provided' => $camp->lunch_provided,
+                'fid' => $camp->facility_id,
+                'fac' => $camp->facility->name,
+                'boro' => $camp->facility->borough,
+                'cat' => $camp->category,
+                'ages' => "{$camp->age_min}-{$camp->age_max}",
+                'wk' => $camp->week_start->format('m-d'),
+                'sched' => $camp->schedule_type,
+                'price' => $camp->price_cents,
+                'avail' => $camp->availability_status,
+                'spots' => $camp->is_full ? 0 : $camp->spots_remaining,
+                'wl' => $camp->waitlist_count,
+                'lunch' => $camp->lunch_provided,
             ]);
 
         if ($camps->isEmpty()) {
-            return 'No camps found matching those criteria. Try broadening your search.';
+            return 'No camps found. Try broader criteria (remove borough or category filter).';
         }
 
         return json_encode($camps->values()->toArray());
@@ -75,12 +73,12 @@ class SearchCamps implements Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'age' => $schema->integer()->description('Child\'s age to filter camps that accept this age'),
-            'category' => $schema->string()->description('Camp category: sports, arts, performing_arts, stem, nature, academic, general'),
-            'borough' => $schema->string()->description('NYC borough: Manhattan, Brooklyn, Queens, Bronx, Staten Island'),
-            'week_start' => $schema->string()->description('Monday date of the week in YYYY-MM-DD format, e.g. 2026-06-15'),
-            'price_max_cents' => $schema->integer()->description('Maximum price in cents, e.g. 50000 for $500'),
-            'schedule_type' => $schema->string()->description('Schedule: full_day, half_day_am, or half_day_pm'),
+            'age' => $schema->integer()->description('Child age to filter by'),
+            'category' => $schema->string()->description('Category: sports, arts, performing_arts, stem, nature, academic, general'),
+            'borough' => $schema->string()->description('Borough: Manhattan, Brooklyn, Queens, Bronx, Staten Island'),
+            'week_start' => $schema->string()->description('Specific week YYYY-MM-DD (optional — omit to search all weeks)'),
+            'price_max_cents' => $schema->integer()->description('Max price in cents'),
+            'schedule_type' => $schema->string()->description('full_day, half_day_am, or half_day_pm'),
         ];
     }
 }

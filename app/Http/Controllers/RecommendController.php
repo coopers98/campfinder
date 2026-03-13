@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Ai\Agents\CampRecommender;
+use App\Ai\Agents\PromptParser;
+use App\Services\CampMatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -16,16 +17,18 @@ class RecommendController extends Controller
         ]);
 
         try {
-            $response = (new CampRecommender)->prompt($request->input('prompt'));
+            // Stage 1: Parse free text into structured criteria (gpt-4o-mini, ~2-3s)
+            $parsedResponse = (new PromptParser)->prompt($request->input('prompt'));
+            $parsed = json_decode(json_encode($parsedResponse), true);
+
+            // Stage 2: PHP-side scoring, shortlist building, and plan assembly (instant)
+            $matcher = new CampMatcher;
+            $shortlist = $matcher->buildShortlist($parsed);
+            $plan = $matcher->buildPlan($shortlist);
 
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'children' => $response['children'],
-                    'sibling_overlaps' => $response['sibling_overlaps'],
-                    'total_estimated_cost_cents' => $response['total_estimated_cost_cents'],
-                    'notes' => $response['notes'],
-                ],
+                'data' => $plan,
             ]);
         } catch (Throwable $e) {
             report($e);
