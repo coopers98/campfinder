@@ -281,23 +281,15 @@ class CampMatcher
             ];
         }
 
-        // Build sibling overlaps in the expected format
-        $siblingOverlaps = [];
-        foreach ($shortlist['facility_overlaps'] as $overlap) {
-            foreach ($overlap['shared_facilities'] as $facility) {
-                $siblingOverlaps[] = [
-                    'week_start' => $overlap['week_start'],
-                    'facility_name' => $facility['name'],
-                    'children_names' => array_map(fn ($c) => $c['name'], $shortlist['children']),
-                ];
-            }
+        // Auto-select sibling facility matches when multiple children
+        if (count($children) > 1) {
+            $totalCost = $this->autoSelectSiblingMatches($children, $totalCost);
         }
 
         return [
             'children' => $children,
-            'sibling_overlaps' => $siblingOverlaps,
             'total_estimated_cost_cents' => $totalCost,
-            'notes' => $this->generateNotes($children, $siblingOverlaps),
+            'notes' => $this->generateNotes($children, []),
         ];
     }
 
@@ -400,6 +392,72 @@ class CampMatcher
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
         return round($earthRadius * $c, 1);
+    }
+
+    /**
+     * After building all children's weeks, find shared facilities and auto-select them.
+     * Modifies $children by reference and returns updated total cost.
+     */
+    protected function autoSelectSiblingMatches(array &$children, int $totalCost): int
+    {
+        $weekCount = count($children[0]['weeks'] ?? []);
+
+        for ($wIdx = 0; $wIdx < $weekCount; $wIdx++) {
+            // Collect facility_id => [childIdx => optionIdx] for all options across children
+            $facilityMap = [];
+            $allUnlocked = true;
+
+            foreach ($children as $cIdx => &$child) {
+                $week = $child['weeks'][$wIdx];
+                if ($week['blocked'] || ($week['locked'] ?? false) || empty($week['options'])) {
+                    $allUnlocked = false;
+                    continue;
+                }
+                foreach ($week['options'] as $oIdx => $opt) {
+                    $fid = $opt['facility_id'];
+                    $facilityMap[$fid][$cIdx] = $oIdx;
+                }
+            }
+            unset($child);
+
+            if (!$allUnlocked) {
+                continue;
+            }
+
+            // Find a facility that appears in ALL children's options for this week
+            $bestFacility = null;
+            $bestScore = -1;
+            foreach ($facilityMap as $fid => $childOptions) {
+                if (count($childOptions) === count($children)) {
+                    // Score: prefer options that are already highly ranked (lower oIdx = better)
+                    $score = 0;
+                    foreach ($childOptions as $oIdx) {
+                        $score -= $oIdx; // Lower index = higher score
+                    }
+                    if ($bestFacility === null || $score > $bestScore) {
+                        $bestFacility = $fid;
+                        $bestScore = $score;
+                    }
+                }
+            }
+
+            if ($bestFacility !== null) {
+                // Update selected_index for each child to the sibling-matching option
+                foreach ($facilityMap[$bestFacility] as $cIdx => $oIdx) {
+                    $week = &$children[$cIdx]['weeks'][$wIdx];
+                    $oldIdx = $week['selected_index'];
+                    if ($oldIdx !== $oIdx) {
+                        // Adjust total cost
+                        $totalCost -= $week['options'][$oldIdx]['price_cents'];
+                        $totalCost += $week['options'][$oIdx]['price_cents'];
+                        $week['selected_index'] = $oIdx;
+                    }
+                    unset($week);
+                }
+            }
+        }
+
+        return $totalCost;
     }
 
     /**

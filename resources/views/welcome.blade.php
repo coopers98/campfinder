@@ -223,7 +223,7 @@
 
                             {{-- Week cells --}}
                             <template x-for="(week, wIdx) in child.weeks" :key="week.week_start">
-                                <div class="border-b border-r border-gray-100 p-0.5 relative group/cell"
+                                <div class="border-b border-r border-gray-100 p-0.5 relative"
                                      :class="{
                                          'bg-gray-50': week.blocked,
                                          'bg-white': !week.blocked,
@@ -241,13 +241,6 @@
                                     {{-- Options list --}}
                                     <template x-if="!week.blocked && week.options && week.options.length > 0">
                                         <div class="space-y-0.5 min-h-[100px]">
-                                            {{-- Block button in corner --}}
-                                            <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="absolute top-0.5 right-0.5 p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-gray-100 z-20 opacity-0 group-hover/cell:opacity-100 transition-opacity">
-                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                                                </svg>
-                                            </button>
 
                                             <template x-for="(opt, oIdx) in week.options" :key="opt.camp_id">
                                                 <div class="relative"
@@ -255,11 +248,7 @@
                                                      @mouseenter="showTip = true" @mouseleave="showTip = false">
                                                     <div @click="selectOption(cIdx, wIdx, oIdx)"
                                                          class="rounded p-1 cursor-pointer transition-all text-left"
-                                                         :class="{
-                                                             'bg-teal-50 ring-1 ring-teal-300': oIdx === week.selected_index && !week.locked,
-                                                             'bg-amber-50 ring-1 ring-amber-300': oIdx === week.selected_index && week.locked,
-                                                             'hover:bg-gray-50': oIdx !== week.selected_index,
-                                                         }">
+                                                         :class="optionRowClass(week, cIdx, oIdx, opt)">
 
                                                         <div class="flex items-start gap-1">
                                                             {{-- Radio dot --}}
@@ -283,10 +272,19 @@
                                                                           :class="categoryDot[opt.category] || 'bg-gray-400'"></span>
                                                                     <span class="text-[10px] font-semibold text-gray-900 leading-tight truncate"
                                                                           x-text="opt.camp_name"></span>
+                                                                    <template x-if="siblingMatchType(week, cIdx, opt) === 'camp'">
+                                                                        <span class="shrink-0 text-[8px] bg-purple-200 text-purple-700 px-1 rounded font-bold" title="Same camp available for sibling">SAME</span>
+                                                                    </template>
+                                                                    <template x-if="siblingMatchType(week, cIdx, opt) === 'facility'">
+                                                                        <span class="shrink-0 text-[8px] bg-purple-100 text-purple-600 px-1 rounded font-bold" title="Same facility available for sibling">FAC</span>
+                                                                    </template>
                                                                 </div>
-                                                                <div class="flex items-center justify-between mt-0.5">
+                                                                <div class="flex items-center gap-1 mt-0.5">
                                                                     <span class="text-[10px] font-bold" x-text="formatPrice(opt.price_cents)"></span>
-                                                                    <span class="text-[9px] font-medium px-1 py-px rounded-full"
+                                                                    <template x-if="opt.lunch_provided">
+                                                                        <span class="text-[9px] text-teal-600" title="Lunch included">+L</span>
+                                                                    </template>
+                                                                    <span class="ml-auto text-[9px] font-medium px-1 py-px rounded-full"
                                                                           :class="{
                                                                               'bg-green-100 text-green-700': opt.availability_status === 'available',
                                                                               'bg-yellow-100 text-yellow-700': opt.availability_status === 'almost_full',
@@ -369,6 +367,19 @@
                                                             </template>
                                                         </div>
 
+                                                        {{-- Sibling match callout --}}
+                                                        <template x-if="siblingMatchType(week, cIdx, opt)">
+                                                            <div class="mt-2 flex items-center gap-1.5 bg-purple-50 rounded px-2 py-1">
+                                                                <svg class="w-3 h-3 text-purple-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                </svg>
+                                                                <span class="text-[10px] text-purple-700 font-medium"
+                                                                      x-text="siblingMatchType(week, cIdx, opt) === 'camp'
+                                                                          ? 'Same camp available for sibling!'
+                                                                          : 'Same facility available for sibling'"></span>
+                                                            </div>
+                                                        </template>
+
                                                         {{-- Reason --}}
                                                         <div class="mt-2 pt-2 border-t border-gray-100">
                                                             <p class="text-[10px] text-gray-500 italic" x-text="opt.reason"></p>
@@ -377,16 +388,12 @@
                                                 </div>
                                             </template>
 
-                                            {{-- Lock / Sibling indicator row --}}
-                                            <div class="flex items-center justify-between px-1 pt-0.5">
-                                                <div class="flex items-center gap-1">
-                                                    <template x-if="isSiblingOverlap(week, cIdx)">
-                                                        <span class="text-[9px] bg-purple-100 text-purple-600 px-1 py-px rounded font-medium">Sibling</span>
-                                                    </template>
-                                                    <template x-if="selectedOpt(week)?.lunch_provided">
-                                                        <span class="text-[9px] text-gray-400">+lunch</span>
-                                                    </template>
-                                                </div>
+                                            {{-- Lock + Block row --}}
+                                            <div class="flex items-center justify-between px-1 pt-1 border-t border-gray-100 mt-0.5">
+                                                <button @click.stop="toggleBlock(cIdx, week.week_start)"
+                                                        class="text-[9px] font-medium px-1.5 py-0.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                    Block
+                                                </button>
                                                 <button @click.stop="toggleLock(cIdx, wIdx)"
                                                         class="text-[9px] font-medium px-1.5 py-0.5 rounded transition-colors"
                                                         :class="week.locked
@@ -657,13 +664,32 @@ function campFinder() {
             return 'Waitlist — ' + rec.waitlist_count + ' ahead of you';
         },
 
-        isSiblingOverlap(week, cIdx) {
-            if (!this.results?.sibling_overlaps) return false;
-            const sel = this.selectedOpt(week);
-            if (!sel) return false;
-            return this.results.sibling_overlaps.some(o =>
-                o.week_start === week.week_start && o.facility_name === sel.facility_name
-            );
+        siblingMatchType(week, cIdx, opt) {
+            if (!this.results || this.results.children.length < 2) return null;
+            let hasFacility = false;
+            for (let i = 0; i < this.results.children.length; i++) {
+                if (i === cIdx) continue;
+                const otherWeek = this.results.children[i].weeks.find(w => w.week_start === week.week_start);
+                if (!otherWeek || otherWeek.blocked) continue;
+                const otherOpts = otherWeek.options || [];
+                if (otherOpts.some(o => o.camp_name === opt.camp_name && o.facility_id === opt.facility_id)) return 'camp';
+                if (otherOpts.some(o => o.facility_id === opt.facility_id)) hasFacility = true;
+            }
+            return hasFacility ? 'facility' : null;
+        },
+
+        optionRowClass(week, cIdx, oIdx, opt) {
+            const selected = oIdx === week.selected_index;
+            const locked = week.locked;
+            const sibType = this.siblingMatchType(week, cIdx, opt);
+
+            if (selected && locked) return 'bg-amber-50 ring-1 ring-amber-300';
+            if (selected && sibType === 'camp') return 'bg-purple-50 ring-1 ring-purple-400';
+            if (selected && sibType === 'facility') return 'bg-purple-50 ring-1 ring-purple-300';
+            if (selected) return 'bg-teal-50 ring-1 ring-teal-300';
+            if (sibType === 'camp') return 'bg-purple-50/50 border border-dashed border-purple-200 hover:bg-purple-50';
+            if (sibType === 'facility') return 'bg-purple-50/30 border border-dashed border-purple-100 hover:bg-purple-50';
+            return 'hover:bg-gray-50';
         },
     };
 }
