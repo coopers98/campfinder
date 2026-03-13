@@ -96,21 +96,21 @@ INSTRUCTIONS;
         ];
 
         return [
-            'children' => $schema->array($schema->object([
+            'children' => $schema->array()->items($schema->object([
                 'name' => $schema->string()->required(),
                 'age' => $schema->integer()->required(),
                 'summary' => $schema->string()->required(),
-                'weeks' => $schema->array($schema->object([
+                'weeks' => $schema->array()->items($schema->object([
                     'week_start' => $schema->string()->required(),
                     'week_label' => $schema->string()->required(),
                     'primary_recommendation' => $schema->object($recommendationSchema)->nullable(),
                     'alternative' => $schema->object($recommendationSchema)->nullable(),
                 ]))->required(),
             ]))->required(),
-            'sibling_overlaps' => $schema->array($schema->object([
+            'sibling_overlaps' => $schema->array()->items($schema->object([
                 'week_start' => $schema->string()->required(),
                 'facility_name' => $schema->string()->required(),
-                'children_names' => $schema->array($schema->string())->required(),
+                'children_names' => $schema->array()->items($schema->string())->required(),
             ]))->required(),
             'total_estimated_cost_cents' => $schema->integer()->required(),
             'notes' => $schema->string()->required(),
