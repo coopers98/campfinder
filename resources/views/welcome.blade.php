@@ -21,7 +21,10 @@
                 </svg>
                 <span class="text-lg font-bold text-gray-900">Camp<span class="text-teal-600">Finder</span> AI</span>
             </div>
-            <span class="text-xs text-gray-400">NYC Summer 2026</span>
+            <div class="flex items-center gap-4">
+                <a href="/data" class="text-xs text-teal-600 hover:text-teal-800 font-medium">Sample Data</a>
+                <span class="text-xs text-gray-400">NYC Summer 2026</span>
+            </div>
         </div>
     </nav>
 
