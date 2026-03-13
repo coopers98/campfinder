@@ -170,8 +170,10 @@
                     {{-- Child rows --}}
                     <template x-for="(child, cIdx) in results.children" :key="cIdx">
                         <div class="contents">
-                            {{-- Child label --}}
-                            <div class="sticky left-0 z-10 bg-white border-b border-r border-gray-200 px-2 py-2 flex items-start gap-2">
+                            {{-- Child label with tooltip --}}
+                            <div class="sticky left-0 z-10 bg-white border-b border-r border-gray-200 px-2 py-2 flex items-start gap-2 relative"
+                                 x-data="{ showChildTip: false }"
+                                 @mouseenter="showChildTip = true" @mouseleave="showChildTip = false">
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 mt-0.5"
                                      :class="childColors[cIdx % childColors.length]">
                                     <span x-text="child.name.charAt(0).toUpperCase()"></span>
@@ -179,6 +181,43 @@
                                 <div class="min-w-0">
                                     <div class="text-xs font-bold text-gray-900 truncate" x-text="child.name"></div>
                                     <div class="text-[10px] text-gray-500" x-text="'Age ' + child.age"></div>
+                                </div>
+
+                                {{-- Child info tooltip --}}
+                                <div x-show="showChildTip" x-cloak
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     class="absolute left-full ml-2 top-0 z-50 w-52 bg-white rounded-lg shadow-xl border border-gray-200 p-3 text-left pointer-events-none">
+                                    <div class="text-xs font-bold text-gray-900 mb-2" x-text="child.name + ', Age ' + child.age"></div>
+                                    <div class="space-y-1.5 text-[10px]">
+                                        <div>
+                                            <span class="text-gray-400">Interests</span>
+                                            <div class="flex flex-wrap gap-1 mt-0.5">
+                                                <template x-for="cat in child.categories" :key="cat">
+                                                    <span class="px-1.5 py-0.5 rounded-full font-medium"
+                                                          :class="categoryBadge[cat] || 'bg-gray-100 text-gray-700'"
+                                                          x-text="formatCategory(cat)"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">Location</span>
+                                            <div class="font-medium text-gray-700" x-text="child.borough || 'Any borough'"></div>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">Budget</span>
+                                            <div class="font-medium text-gray-700" x-text="formatPrice(child.budget_cents) + '/week'"></div>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">Schedule</span>
+                                            <div class="font-medium text-gray-700" x-text="child.schedule_preference === 'any' ? 'Any schedule' : formatSchedule(child.schedule_preference)"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-t border-gray-100">
+                                        <p class="text-[10px] text-gray-500 italic" x-text="child.summary"></p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -278,7 +317,12 @@
 
                                                         {{-- Facility --}}
                                                         <div class="text-[11px] text-gray-700 font-medium" x-text="opt.facility_name"></div>
-                                                        <div class="text-[10px] text-gray-500" x-text="opt.neighborhood + ', ' + opt.borough"></div>
+                                                        <div class="text-[10px] text-gray-500">
+                                                            <span x-text="opt.neighborhood + ', ' + opt.borough"></span>
+                                                            <template x-if="opt.distance_miles !== null">
+                                                                <span class="ml-1 text-teal-600 font-medium" x-text="'(' + opt.distance_miles + ' mi)'"></span>
+                                                            </template>
+                                                        </div>
 
                                                         {{-- Details grid --}}
                                                         <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-[10px]">
@@ -290,6 +334,12 @@
                                                                 <span class="text-gray-400">Ages</span>
                                                                 <div class="font-medium text-gray-700" x-text="opt.ages"></div>
                                                             </div>
+                                                            <template x-if="opt.distance_miles !== null">
+                                                                <div>
+                                                                    <span class="text-gray-400">Distance</span>
+                                                                    <div class="font-medium text-teal-600" x-text="opt.distance_miles + ' miles'"></div>
+                                                                </div>
+                                                            </template>
                                                             <div>
                                                                 <span class="text-gray-400">Schedule</span>
                                                                 <div class="font-medium text-gray-700" x-text="formatSchedule(opt.schedule_type)"></div>
@@ -400,6 +450,16 @@ function campFinder() {
             nature: 'bg-green-500',
             academic: 'bg-indigo-500',
             general: 'bg-gray-400',
+        },
+
+        categoryBadge: {
+            sports: 'bg-blue-100 text-blue-700',
+            arts: 'bg-pink-100 text-pink-700',
+            performing_arts: 'bg-purple-100 text-purple-700',
+            stem: 'bg-orange-100 text-orange-700',
+            nature: 'bg-green-100 text-green-700',
+            academic: 'bg-indigo-100 text-indigo-700',
+            general: 'bg-gray-100 text-gray-700',
         },
 
         gridStyle() {

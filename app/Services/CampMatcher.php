@@ -7,6 +7,17 @@ use Illuminate\Support\Collection;
 
 class CampMatcher
 {
+    // Approximate center coordinates for each borough
+    protected array $boroughCenters = [
+        'Manhattan' => [40.7580, -73.9855],
+        'Brooklyn' => [40.6782, -73.9442],
+        'Queens' => [40.7282, -73.7949],
+        'Bronx' => [40.8448, -73.8648],
+        'Staten Island' => [40.5795, -74.1502],
+    ];
+
+    protected ?array $userLocation = null;
+
     protected array $summerWeeks = [
         '2026-06-15', '2026-06-22', '2026-06-29',
         '2026-07-06', '2026-07-13', '2026-07-20', '2026-07-27',
@@ -36,6 +47,11 @@ class CampMatcher
         $budget = $parsedCriteria['budget_cents_per_week'] ?? 50000;
         $schedulePref = $parsedCriteria['schedule_preference'] ?? 'any';
         $preferSameFacility = $parsedCriteria['prefer_same_facility'] ?? false;
+
+        // Set user location from borough for distance calculations
+        if ($borough && isset($this->boroughCenters[$borough])) {
+            $this->userLocation = $this->boroughCenters[$borough];
+        }
 
         $result = [];
 
@@ -86,6 +102,11 @@ class CampMatcher
         return [
             'children' => $result,
             'facility_overlaps' => $facilityOverlaps,
+            'meta' => [
+                'borough' => $borough,
+                'budget_cents' => $budget,
+                'schedule_preference' => $schedulePref,
+            ],
         ];
     }
 
@@ -148,6 +169,11 @@ class CampMatcher
                 $score += 3;
             }
 
+            $distance = $this->calcDistance(
+                (float) $camp->facility->latitude,
+                (float) $camp->facility->longitude,
+            );
+
             return [
                 'id' => $camp->id,
                 'name' => $camp->name,
@@ -163,6 +189,7 @@ class CampMatcher
                 'spots_remaining' => $camp->is_full ? 0 : $camp->spots_remaining,
                 'waitlist_count' => $camp->waitlist_count,
                 'lunch_provided' => $camp->lunch_provided,
+                'distance_miles' => $distance,
                 'score' => $score,
             ];
         })->sortByDesc('score');
@@ -241,9 +268,14 @@ class CampMatcher
                 ];
             }
 
+            $meta = $shortlist['meta'] ?? [];
             $children[] = [
                 'name' => $child['name'],
                 'age' => $child['age'],
+                'categories' => $child['categories'],
+                'borough' => $meta['borough'] ?? '',
+                'budget_cents' => $meta['budget_cents'] ?? 50000,
+                'schedule_preference' => $meta['schedule_preference'] ?? 'any',
                 'summary' => $this->generateChildSummary($child),
                 'weeks' => $weeks,
             ];
@@ -286,6 +318,7 @@ class CampMatcher
             'spots_remaining' => $candidate['spots_remaining'],
             'waitlist_count' => $candidate['waitlist_count'],
             'lunch_provided' => $candidate['lunch_provided'],
+            'distance_miles' => $candidate['distance_miles'],
             'reason' => $this->generateReason($candidate),
         ];
     }
@@ -349,6 +382,24 @@ class CampMatcher
         $notes[] = 'Book early for camps marked as "almost full."';
 
         return implode(' ', $notes);
+    }
+
+    protected function calcDistance(float $lat, float $lng): ?float
+    {
+        if (!$this->userLocation) {
+            return null;
+        }
+
+        [$userLat, $userLng] = $this->userLocation;
+
+        // Haversine formula
+        $earthRadius = 3958.8; // miles
+        $dLat = deg2rad($lat - $userLat);
+        $dLng = deg2rad($lng - $userLng);
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($userLat)) * cos(deg2rad($lat)) * sin($dLng / 2) ** 2;
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return round($earthRadius * $c, 1);
     }
 
     /**
