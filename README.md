@@ -1,59 +1,111 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CampFinder AI
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**A hackathon prototype for AI-powered summer camp discovery in NYC.**
 
-## About Laravel
+Parents describe their children and preferences in plain English, and CampFinder AI builds a personalized 10-week summer camp plan across all five boroughs.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Goal
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Finding summer camps in NYC is overwhelming. Parents juggle dozens of providers, age restrictions, schedules, locations, and availability — multiplied by the number of children and weeks in the summer. CampFinder AI aims to collapse that research from days into seconds.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+The prototype demonstrates how a natural language interface backed by structured AI parsing and a smart matching engine can generate a complete, interactive summer plan that parents can refine in real time.
 
-## Learning Laravel
+## How It Works
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Two-Stage Architecture
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The system uses a deliberate two-stage design to balance intelligence with speed:
 
-## Laravel Sponsors
+**Stage 1 — LLM Parsing (2-3s)**
+A single call to `gpt-4o-mini` via Laravel AI extracts structured criteria from free-text input: children's names, ages, interests, borough, budget, schedule preference, and whether siblings should attend the same facility. The LLM acts purely as a parser — no recommendations, no camp knowledge.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**Stage 2 — PHP Matching Engine (instant)**
+A deterministic PHP service (`CampMatcher`) queries the database, scores every candidate camp, and assembles the full plan. This avoids the latency, cost, and unpredictability of asking an LLM to reason over hundreds of camp options. Scoring factors include:
 
-### Premium Partners
+- Category match (primary interest 40pts, secondary 30pts, general 10pts)
+- Borough proximity (20pts) with Haversine distance calculation
+- Availability status (available 15pts, almost full 8pts, waitlist 0pts)
+- Schedule type and amenities (lunch, full-day bonuses)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Results are sorted with interest matches first, then by score, so parents always see relevant camps before "also available" alternatives.
 
-## Contributing
+### Sibling-Aware Planning
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+When multiple children are present, the engine runs a second pass after initial scoring to find weeks where a shared facility has age-appropriate camps for all siblings. It auto-selects these options and highlights them with purple badges (`SAME` for identical camps, `FAC` for same facility).
 
-## Code of Conduct
+### Interactive Refinement
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The plan isn't static. Parents can:
 
-## Security Vulnerabilities
+- **Select** between 3-5 ranked options per week per child
+- **Lock** a preferred camp to preserve it during re-planning
+- **Block** a week per child (vacation, travel, etc.)
+- **Re-plan** unlocked weeks with fresh options (previously shown camps are excluded)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+All refinement happens client-side or via the same fast PHP engine — no additional LLM calls.
 
-## License
+## Tech Stack
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Laravel 12** on Docker (Laravel Sail)
+- **Laravel AI SDK** (`laravel/ai` v0.3.0) with OpenAI provider for structured output parsing
+- **Alpine.js** reactive frontend — single-page feel without a JS build framework
+- **Tailwind CSS 4** with custom Sawyer brand palette (`#ff5a52`)
+- **SQLite** database with seeded sample data (27 facilities, ~1,500 camp sessions)
+
+## Camp Categories
+
+The prototype covers 10 camp types across NYC:
+
+| Category | Emoji | Example Camps |
+|----------|-------|---------------|
+| Sports | ⚽ | Gotham Goal Strikers, Brooklyn Ballers Academy |
+| Arts | 🎨 | Tiny Brushstrokes Studio, Clay Borough Pottery |
+| Performing Arts | 🎭 | Broadway Bootcamp Jr., The Rhythm Hive |
+| STEM | 🔬 | CodeCraft Academy, BotBuilder Workshop |
+| Nature | 🌿 | Urban Wilderness Rangers, Tide Pool Explorers |
+| Academic | 📚 | Page Turners Book Lab, Checkmate Chess Intensive |
+| Martial Arts | 🥋 | Little Dragons Karate, Ninja Academy NYC |
+| Equestrian | 🐴 | Saddle Up Stables Camp, Bronx Pony Club |
+| Pets & Animals | 🐾 | Pawsitive Kids Animal Camp, Junior Vet Academy |
+| General | ☀️ | Camp Kaleidoscope, The Great Summer Mashup |
+
+## UI Design
+
+The results view is a month-paginated calendar grid (June / July / August) with:
+
+- Child rows on the left, week columns across
+- Camp options as selectable cards with emoji, price, distance, and availability
+- Hover tooltips with full camp details (facility, neighborhood, distance, schedule, reason)
+- Visual dividers between interest-matched camps and "also available" alternatives
+- Purple highlights for sibling facility overlap opportunities
+- Lock/block controls per cell for plan refinement
+
+## Running Locally
+
+```bash
+# Clone and install
+git clone <repo-url> && cd campfinder
+composer install
+cp .env.example .env
+
+# Start containers and seed data
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate:fresh --seed
+./vendor/bin/sail npm install && ./vendor/bin/sail npm run build
+
+# Visit http://localhost:8080
+```
+
+Requires an OpenAI API key in `.env` (`OPENAI_API_KEY=...`) for the natural language parsing stage.
+
+## Sample Data Explorer
+
+Visit `/data` to browse all seeded facilities and camp sessions with filters for borough, category, week, and child age. Useful for prototype reviewers to verify the underlying data.
+
+## What This Demonstrates
+
+- Natural language as the primary interface for complex multi-variable search
+- Hybrid AI architecture: LLM for understanding, deterministic code for execution
+- Sub-5-second response times for a task that would take parents hours manually
+- Interactive plan refinement without round-tripping to an LLM
+- Sibling coordination as a first-class feature, not an afterthought
