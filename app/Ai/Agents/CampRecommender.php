@@ -103,8 +103,8 @@ INSTRUCTIONS;
                 'weeks' => $schema->array()->items($schema->object([
                     'week_start' => $schema->string()->required(),
                     'week_label' => $schema->string()->required(),
-                    'primary_recommendation' => $schema->object($recommendationSchema)->nullable()->withoutAdditionalProperties(),
-                    'alternative' => $schema->object($recommendationSchema)->nullable()->withoutAdditionalProperties(),
+                    'primary_recommendation' => $schema->object($recommendationSchema)->nullable()->required()->withoutAdditionalProperties(),
+                    'alternative' => $schema->object($recommendationSchema)->nullable()->required()->withoutAdditionalProperties(),
                 ])->withoutAdditionalProperties())->required(),
             ])->withoutAdditionalProperties())->required(),
             'sibling_overlaps' => $schema->array()->items($schema->object([
