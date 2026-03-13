@@ -14,21 +14,32 @@ class RecommendController extends Controller
     {
         $request->validate([
             'prompt' => 'required|string|max:2000',
+            'parsed_criteria' => 'sometimes|array',
+            'blocked_weeks' => 'sometimes|array',
+            'locked_camps' => 'sometimes|array',
         ]);
 
         try {
-            // Stage 1: Parse free text into structured criteria (gpt-4o-mini, ~2-3s)
-            $parsedResponse = (new PromptParser)->prompt($request->input('prompt'));
-            $parsed = json_decode(json_encode($parsedResponse), true);
+            // If we already have parsed criteria (retry), skip the LLM call
+            if ($request->has('parsed_criteria')) {
+                $parsed = $request->input('parsed_criteria');
+            } else {
+                $parsedResponse = (new PromptParser)->prompt($request->input('prompt'));
+                $parsed = json_decode(json_encode($parsedResponse), true);
+            }
 
-            // Stage 2: PHP-side scoring, shortlist building, and plan assembly (instant)
             $matcher = new CampMatcher;
             $shortlist = $matcher->buildShortlist($parsed);
-            $plan = $matcher->buildPlan($shortlist);
+
+            $blockedWeeks = $request->input('blocked_weeks', []);
+            $lockedCamps = $request->input('locked_camps', []);
+
+            $plan = $matcher->buildPlan($shortlist, $blockedWeeks, $lockedCamps);
 
             return response()->json([
                 'success' => true,
                 'data' => $plan,
+                'parsed_criteria' => $parsed,
             ]);
         } catch (Throwable $e) {
             report($e);

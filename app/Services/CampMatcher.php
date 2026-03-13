@@ -157,15 +157,48 @@ class CampMatcher
     /**
      * Build the full recommendation plan from a shortlist (picks primary + alternative per week).
      */
-    public function buildPlan(array $shortlist): array
+    public function buildPlan(array $shortlist, array $blockedWeeks = [], array $lockedCamps = []): array
     {
         $children = [];
         $totalCost = 0;
 
-        foreach ($shortlist['children'] as $child) {
+        foreach ($shortlist['children'] as $childIdx => $child) {
+            $childName = $child['name'];
             $weeks = [];
 
             foreach ($child['weeks'] as $week) {
+                $weekStart = $week['week_start'];
+
+                // Check if this week is blocked for this child
+                $isBlocked = in_array($weekStart, $blockedWeeks[$childIdx] ?? $blockedWeeks[$childName] ?? []);
+
+                if ($isBlocked) {
+                    $weeks[] = [
+                        'week_start' => $weekStart,
+                        'week_label' => $week['week_label'],
+                        'blocked' => true,
+                        'primary_recommendation' => null,
+                        'alternative' => null,
+                    ];
+                    continue;
+                }
+
+                // Check if there's a locked camp for this child+week
+                $locked = $lockedCamps[$childIdx][$weekStart] ?? $lockedCamps[$childName][$weekStart] ?? null;
+
+                if ($locked) {
+                    $totalCost += $locked['price_cents'];
+                    $weeks[] = [
+                        'week_start' => $weekStart,
+                        'week_label' => $week['week_label'],
+                        'blocked' => false,
+                        'primary_recommendation' => $locked,
+                        'alternative' => null,
+                        'locked' => true,
+                    ];
+                    continue;
+                }
+
                 $candidates = $week['candidates'];
                 $primary = $candidates[0] ?? null;
                 $alternative = $candidates[1] ?? null;
@@ -175,8 +208,9 @@ class CampMatcher
                 }
 
                 $weeks[] = [
-                    'week_start' => $week['week_start'],
+                    'week_start' => $weekStart,
                     'week_label' => $week['week_label'],
+                    'blocked' => false,
                     'primary_recommendation' => $primary ? $this->formatRecommendation($primary) : null,
                     'alternative' => $alternative ? $this->formatRecommendation($alternative) : null,
                 ];
