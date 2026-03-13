@@ -14,15 +14,15 @@
     <div class="max-w-7xl mx-auto px-4 h-12 flex items-center justify-between">
         <div class="flex items-center gap-4">
             <a href="/" class="flex items-center gap-2">
-                <svg class="w-6 h-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-6 h-6 text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 21V7l9-4 9 4v14M3 21h18M9 21V11h6v10"/>
                 </svg>
-                <span class="text-lg font-bold text-gray-900">Camp<span class="text-teal-600">Finder</span> AI</span>
+                <span class="text-lg font-bold text-gray-900">Camp<span class="text-sawyer-500">Finder</span> AI</span>
             </a>
             <span class="text-sm text-gray-400">|</span>
             <span class="text-sm font-semibold text-gray-700">Sample Data Explorer</span>
         </div>
-        <a href="/" class="text-sm text-teal-600 hover:text-teal-800 font-medium">Back to Finder</a>
+        <a href="/" class="text-sm text-sawyer-500 hover:text-sawyer-700 font-medium">Back to Finder</a>
     </div>
 </nav>
 
@@ -30,19 +30,19 @@
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <div class="text-2xl font-bold text-teal-600">{{ $stats['facilities'] }}</div>
+            <div class="text-2xl font-bold text-sawyer-500">{{ $stats['facilities'] }}</div>
             <div class="text-xs text-gray-500">Facilities</div>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <div class="text-2xl font-bold text-teal-600">{{ $stats['camps'] }}</div>
+            <div class="text-2xl font-bold text-sawyer-500">{{ $stats['camps'] }}</div>
             <div class="text-xs text-gray-500">Camp Sessions</div>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <div class="text-2xl font-bold text-teal-600">{{ count($stats['boroughs']) }}</div>
+            <div class="text-2xl font-bold text-sawyer-500">{{ count($stats['boroughs']) }}</div>
             <div class="text-xs text-gray-500">Boroughs</div>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <div class="text-2xl font-bold text-teal-600">{{ count($stats['categories']) }}</div>
+            <div class="text-2xl font-bold text-sawyer-500">{{ count($stats['categories']) }}</div>
             <div class="text-xs text-gray-500">Categories</div>
         </div>
     </div>
@@ -53,7 +53,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             @foreach($facilities as $f)
                 <a href="{{ url('/data?facility=' . $f->id) }}"
-                   class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-teal-50 border border-gray-100 transition-colors {{ request('facility') == $f->id ? 'bg-teal-50 border-teal-200' : '' }}">
+                   class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-sawyer-50 border border-gray-100 transition-colors {{ request('facility') == $f->id ? 'bg-sawyer-50 border-sawyer-200' : '' }}">
                     <div>
                         <div class="text-xs font-semibold text-gray-900">{{ $f->name }}</div>
                         <div class="text-[10px] text-gray-500">{{ $f->borough }} &middot; {{ $f->neighborhood }}</div>
@@ -106,7 +106,7 @@
             @if(request('facility'))
                 <input type="hidden" name="facility" value="{{ request('facility') }}">
             @endif
-            <button type="submit" class="text-xs bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-1.5 rounded-lg">Filter</button>
+            <button type="submit" class="text-xs bg-sawyer-500 hover:bg-sawyer-600 text-white font-semibold px-4 py-1.5 rounded-lg">Filter</button>
             <a href="{{ url('/data') }}" class="text-xs text-gray-500 hover:text-gray-700">Clear</a>
         </form>
     </div>
@@ -144,6 +144,9 @@
                                         'stem' => 'bg-orange-100 text-orange-700',
                                         'nature' => 'bg-green-100 text-green-700',
                                         'academic' => 'bg-indigo-100 text-indigo-700',
+                                        'martial_arts' => 'bg-red-100 text-red-700',
+                                        'equestrian' => 'bg-amber-100 text-amber-700',
+                                        'pets' => 'bg-lime-100 text-lime-700',
                                         'general' => 'bg-gray-100 text-gray-700',
                                     ];
                                 @endphp

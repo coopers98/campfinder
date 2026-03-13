@@ -223,7 +223,21 @@ class FacilitySeeder extends Seeder
                 'size' => 'large',
             ],
 
-            // Staten Island (1)
+            // Additional Bronx
+            [
+                'name' => 'Van Cortlandt Riding Center',
+                'borough' => 'Bronx',
+                'neighborhood' => 'Van Cortlandt Park',
+                'address' => '1 Van Cortlandt Park S, Bronx, NY 10463',
+                'latitude' => 40.8841,
+                'longitude' => -73.8986,
+                'description' => 'One of NYC\'s few urban equestrian facilities, nestled in Van Cortlandt Park. Riding lessons, horse care, and trail rides through the park.',
+                'amenities' => ['riding arena', 'stables', 'park trails', 'tack room', 'picnic area'],
+                'lunch_provided' => false,
+                'size' => 'medium',
+            ],
+
+            // Staten Island (2)
             [
                 'name' => 'St. George Creative Campus',
                 'borough' => 'Staten Island',
@@ -234,6 +248,20 @@ class FacilitySeeder extends Seeder
                 'description' => 'Staten Island\'s hub for creative kids. Art, theater, music, and digital media in a renovated waterfront building.',
                 'amenities' => ['theater', 'art studios', 'music rooms', 'waterfront deck', 'air conditioning'],
                 'lunch_provided' => false,
+                'size' => 'medium',
+            ],
+
+            // Staten Island - pet/equestrian
+            [
+                'name' => 'Staten Island Pet Ranch',
+                'borough' => 'Staten Island',
+                'neighborhood' => 'Willowbrook',
+                'address' => '600 Richmond Ave, Staten Island, NY 10314',
+                'latitude' => 40.5984,
+                'longitude' => -74.1386,
+                'description' => 'A unique animal-focused camp on Staten Island with petting zoo, pony rides, and veterinary education. The only camp in NYC where kids can interact with farm animals daily.',
+                'amenities' => ['petting zoo', 'pony ring', 'animal barn', 'outdoor pavilion', 'picnic area'],
+                'lunch_provided' => true,
                 'size' => 'medium',
             ],
 

@@ -33,12 +33,15 @@ Parse the free text and identify:
 - Whether siblings should be at the same facility
 
 CATEGORY MAPPING (map interests to these exact values):
-- sports: soccer, basketball, swimming, gymnastics, martial arts, tennis, athletic, sporty
-- arts: art, painting, drawing, sculpture, craft, creative, visual arts
-- performing_arts: theater, dance, music, acting, singing, drama, performance, broadway
-- stem: coding, robotics, science, technology, engineering, math, computers, programming
-- nature: outdoors, nature, garden, animals, hiking, ecology, environmental
-- academic: reading, writing, math, language, chess, learning, tutoring, enrichment
+- sports: soccer, basketball, swimming, gymnastics, tennis, athletic, sporty, baseball, lacrosse, volleyball
+- arts: art, painting, drawing, sculpture, craft, creative, visual arts, pottery, ceramics
+- performing_arts: theater, dance, music, acting, singing, drama, performance, broadway, film, improv
+- stem: coding, robotics, science, technology, engineering, math, computers, programming, minecraft, 3d printing
+- nature: outdoors, nature, garden, hiking, ecology, environmental, birds, plants, wilderness
+- academic: reading, writing, math, language, chess, learning, tutoring, enrichment, debate, history
+- martial_arts: karate, judo, taekwondo, kung fu, martial arts, self-defense, jiu-jitsu, kickboxing, mma, ninja
+- equestrian: horses, horseback riding, equestrian, ponies, riding lessons, stables
+- pets: animals, pets, dogs, cats, veterinary, vet, animal care, reptiles, zoo, farm animals
 - general: everything, all-around, mix, variety, day camp, fun
 
 If a child has no specific interest, use ["general"].

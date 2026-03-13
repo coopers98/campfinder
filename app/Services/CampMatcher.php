@@ -174,6 +174,8 @@ class CampMatcher
                 (float) $camp->facility->longitude,
             );
 
+            $isMatch = in_array($camp->category, $categories) || $camp->category === 'general';
+
             return [
                 'id' => $camp->id,
                 'name' => $camp->name,
@@ -182,6 +184,7 @@ class CampMatcher
                 'borough' => $camp->facility->borough,
                 'neighborhood' => $camp->facility->neighborhood,
                 'category' => $camp->category,
+                'interest_match' => $isMatch,
                 'ages' => "{$camp->age_min}-{$camp->age_max}",
                 'schedule_type' => $camp->schedule_type,
                 'price_cents' => $camp->price_cents,
@@ -192,7 +195,13 @@ class CampMatcher
                 'distance_miles' => $distance,
                 'score' => $score,
             ];
-        })->sortByDesc('score');
+        })->sort(function ($a, $b) {
+            // Interest matches first, then by score descending
+            if ($a['interest_match'] !== $b['interest_match']) {
+                return $b['interest_match'] <=> $a['interest_match'];
+            }
+            return $b['score'] <=> $a['score'];
+        });
     }
 
     /**
@@ -303,6 +312,7 @@ class CampMatcher
             'borough' => $candidate['borough'],
             'neighborhood' => $candidate['neighborhood'],
             'category' => $candidate['category'],
+            'interest_match' => $candidate['interest_match'] ?? true,
             'ages' => $candidate['ages'],
             'price_cents' => $candidate['price_cents'],
             'schedule_type' => $candidate['schedule_type'],

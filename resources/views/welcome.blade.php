@@ -16,23 +16,23 @@
     <nav class="bg-white border-b border-gray-200 shrink-0">
         <div class="max-w-full mx-auto px-4 h-12 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <svg class="w-6 h-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-6 h-6 text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 21V7l9-4 9 4v14M3 21h18M9 21V11h6v10"/>
                 </svg>
-                <span class="text-lg font-bold text-gray-900">Camp<span class="text-teal-600">Finder</span> AI</span>
+                <span class="text-lg font-bold text-gray-900">Camp<span class="text-sawyer-500">Finder</span> AI</span>
             </div>
             <div class="flex items-center gap-4">
-                <a href="/data" class="text-xs text-teal-600 hover:text-teal-800 font-medium">Sample Data</a>
+                <a href="/data" class="text-xs text-sawyer-500 hover:text-sawyer-700 font-medium">Sample Data</a>
                 <span class="text-xs text-gray-400">NYC Summer 2026</span>
             </div>
         </div>
     </nav>
 
     {{-- Hero / Input (collapses when results shown) --}}
-    <div x-show="!results" class="flex-1 flex items-start justify-center overflow-auto bg-gradient-to-b from-teal-50 via-teal-50/30 to-gray-50">
+    <div x-show="!results" class="flex-1 flex items-start justify-center overflow-auto bg-gradient-to-b from-sawyer-50 via-sawyer-50/30 to-gray-50">
         <div class="w-full max-w-2xl mx-auto px-4 pt-12 pb-8 text-center">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-                Find the Perfect <span class="text-teal-600">Summer Camp</span>
+                Find the Perfect <span class="text-sawyer-500">Summer Camp</span>
             </h1>
             <p class="text-base text-gray-600 mb-8 max-w-xl mx-auto">
                 Tell us about your children and we'll plan their entire summer with personalized camp recommendations across NYC.
@@ -47,7 +47,7 @@
                     x-model="prompt"
                     @keydown.meta.enter="submitPrompt()"
                     rows="3"
-                    class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+                    class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sawyer-500 focus:border-transparent resize-none"
                     placeholder="I have a 6-year-old who loves art and a 9-year-old who's into soccer. We live in Park Slope and our budget is around $400/week per kid."
                     :disabled="loading"
                 ></textarea>
@@ -57,7 +57,7 @@
                     <button
                         @click="submitPrompt()"
                         :disabled="loading || !prompt.trim()"
-                        class="bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-6 py-2 rounded-xl text-sm transition-colors"
+                        class="bg-sawyer-500 hover:bg-sawyer-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-6 py-2 rounded-xl text-sm transition-colors"
                     >
                         <span x-show="!loading">Find Camps</span>
                         <span x-show="loading" class="flex items-center gap-2">
@@ -76,7 +76,7 @@
                         <template x-for="example in examples" :key="example">
                             <button
                                 @click="prompt = example"
-                                class="text-xs bg-gray-50 hover:bg-teal-50 text-gray-600 hover:text-teal-700 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-teal-200 transition-colors"
+                                class="text-xs bg-gray-50 hover:bg-sawyer-50 text-gray-600 hover:text-sawyer-600 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-sawyer-200 transition-colors"
                                 x-text="example.substring(0, 55) + '...'"
                                 :disabled="loading"
                             ></button>
@@ -90,7 +90,7 @@
     {{-- Loading overlay --}}
     <div x-show="loading && results" x-cloak class="fixed inset-0 bg-white/60 z-50 flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-lg px-6 py-4 flex items-center gap-3">
-            <svg class="animate-spin w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24">
+            <svg class="animate-spin w-5 h-5 text-sawyer-500" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
@@ -113,10 +113,10 @@
             <div class="bg-white border-b border-gray-200 px-4 py-2 shrink-0">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <h2 class="text-sm font-bold text-gray-900">Summer Camp Plan</h2>
+                        <h2 class="text-lg font-bold text-gray-900">Summer Camp Plan</h2>
                         <div class="flex items-center gap-1">
-                            <span class="text-xs text-gray-500">Total:</span>
-                            <span class="text-sm font-bold text-teal-700" x-text="formatPrice(calcTotal())"></span>
+                            <span class="text-sm text-gray-500">Total:</span>
+                            <span class="text-lg font-bold text-gray-900" x-text="formatPrice(calcTotal())"></span>
                         </div>
                         <template x-if="hasLockedOrBlocked()">
                             <div class="flex items-center gap-2">
@@ -135,7 +135,7 @@
                         <template x-if="hasLockedOrBlocked()">
                             <button @click="retryWithConstraints()"
                                     :disabled="loading"
-                                    class="text-xs bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors">
+                                    class="text-xs bg-sawyer-500 hover:bg-sawyer-600 disabled:opacity-50 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors">
                                 Re-plan Unlocked
                             </button>
                         </template>
@@ -144,26 +144,58 @@
                                 class="text-xs bg-white border border-gray-200 hover:border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg transition-colors">
                             Clear All
                         </button>
-                        <button @click="resetForm()" class="text-xs bg-white border border-gray-200 hover:border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg transition-colors">
+                        <button @click="resetForm()"
+                                class="text-xs border border-sawyer-300 text-sawyer-500 hover:bg-sawyer-50 font-semibold px-4 py-1.5 rounded-lg transition-colors">
                             Start Over
                         </button>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1" x-text="results.notes"></p>
+            </div>
+
+            {{-- Month navigation --}}
+            <div class="bg-white border-b border-gray-200 px-4 py-2 shrink-0">
+                <div class="flex items-center gap-3">
+                    <button @click="prevMonth()"
+                            :disabled="currentMonth === 0"
+                            class="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <span class="text-base font-bold text-gray-900 min-w-[80px] text-center" x-text="monthNames[currentMonth]"></span>
+                    <button @click="nextMonth()"
+                            :disabled="currentMonth === 2"
+                            class="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                    <div class="flex gap-1 ml-2">
+                        <template x-for="(m, mIdx) in monthNames" :key="m">
+                            <button @click="currentMonth = mIdx"
+                                    class="text-xs px-2.5 py-1 rounded-full font-medium transition-colors"
+                                    :class="currentMonth === mIdx
+                                        ? 'bg-sawyer-500 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'">
+                                <span x-text="m"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             {{-- Grid --}}
             <div class="flex-1 overflow-auto min-h-0">
                 <div class="grid min-h-full" :style="gridStyle()">
                     {{-- Header row --}}
-                    <div class="sticky left-0 top-0 z-30 bg-gray-100 border-b border-r border-gray-200 px-2 py-2 flex items-end">
+                    <div class="sticky left-0 top-0 z-30 bg-gray-100 border-b border-r border-gray-200 px-3 py-3 flex items-end">
                         <span class="text-xs font-semibold text-gray-500">Children</span>
                     </div>
-                    <template x-for="(weekStart, wIdx) in weekStarts" :key="weekStart">
-                        <div class="sticky top-0 z-20 bg-gray-100 border-b border-gray-200 px-1 py-2 text-center"
-                             :class="wIdx < weekStarts.length - 1 ? 'border-r border-gray-100' : ''">
-                            <div class="text-xs font-bold text-gray-700" x-text="'Wk ' + (wIdx + 1)"></div>
-                            <div class="text-[10px] text-gray-500" x-text="shortWeekLabel(weekStart)"></div>
+                    <template x-for="(weekStart, vIdx) in visibleWeeks()" :key="weekStart">
+                        <div class="sticky top-0 z-20 bg-gray-100 border-b border-gray-200 px-2 py-3 text-center"
+                             :class="vIdx < visibleWeeks().length - 1 ? 'border-r border-gray-100' : ''">
+                            <div class="text-xs font-bold text-gray-700" x-text="'Wk ' + (globalWeekIndex(weekStart) + 1)"></div>
+                            <div class="text-sm font-bold text-gray-900" x-text="shortWeekLabel(weekStart)"></div>
                         </div>
                     </template>
 
@@ -221,9 +253,9 @@
                                 </div>
                             </div>
 
-                            {{-- Week cells --}}
-                            <template x-for="(week, wIdx) in child.weeks" :key="week.week_start">
-                                <div class="border-b border-r border-gray-100 p-0.5 relative"
+                            {{-- Week cells (visible month only) --}}
+                            <template x-for="(week, vIdx) in visibleChildWeeks(child)" :key="week.week_start">
+                                <div class="border-b border-r border-gray-100 p-1 relative"
                                      :class="{
                                          'bg-gray-50': week.blocked,
                                          'bg-white': !week.blocked,
@@ -234,7 +266,7 @@
                                         <div class="h-full min-h-[100px] flex flex-col items-center justify-center">
                                             <div class="text-xs text-gray-400 font-medium">Off</div>
                                             <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="mt-1 text-[10px] text-teal-600 hover:text-teal-800">Unblock</button>
+                                                    class="mt-1 text-[10px] text-sawyer-500 hover:text-sawyer-700">Unblock</button>
                                         </div>
                                     </template>
 
@@ -246,7 +278,16 @@
                                                 <div class="relative"
                                                      x-data="{ showTip: false }"
                                                      @mouseenter="showTip = true" @mouseleave="showTip = false">
-                                                    <div @click="selectOption(cIdx, wIdx, oIdx)"
+
+                                                    {{-- Divider between interest matches and other options --}}
+                                                    <template x-if="showAlsoDivider(child, week.options, oIdx)">
+                                                        <div class="flex items-center gap-1.5 py-0.5 mb-0.5">
+                                                            <div class="flex-1 border-t border-dashed border-gray-300"></div>
+                                                            <span class="text-[8px] text-gray-400 uppercase tracking-wide shrink-0">Also available</span>
+                                                            <div class="flex-1 border-t border-dashed border-gray-300"></div>
+                                                        </div>
+                                                    </template>
+                                                    <div @click="selectOption(cIdx, globalWeekIndex(week.week_start), oIdx)"
                                                          class="rounded p-1 cursor-pointer transition-all text-left"
                                                          :class="optionRowClass(week, cIdx, oIdx, opt)">
 
@@ -255,7 +296,7 @@
                                                             <div class="mt-0.5 shrink-0">
                                                                 <div class="w-3 h-3 rounded-full border-2 flex items-center justify-center"
                                                                      :class="oIdx === week.selected_index
-                                                                        ? (week.locked ? 'border-amber-500 bg-amber-500' : 'border-teal-500 bg-teal-500')
+                                                                        ? (week.locked ? 'border-amber-500 bg-amber-500' : 'border-sawyer-500 bg-sawyer-500')
                                                                         : 'border-gray-300'">
                                                                     <template x-if="oIdx === week.selected_index && week.locked">
                                                                         <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -268,8 +309,7 @@
                                                             {{-- Camp info --}}
                                                             <div class="min-w-0 flex-1">
                                                                 <div class="flex items-center gap-1">
-                                                                    <span class="w-1.5 h-1.5 rounded-full shrink-0"
-                                                                          :class="categoryDot[opt.category] || 'bg-gray-400'"></span>
+                                                                    <span class="text-xs shrink-0 leading-none" x-text="categoryEmoji[opt.category] || '☀️'"></span>
                                                                     <span class="text-[10px] font-semibold text-gray-900 leading-tight truncate"
                                                                           x-text="opt.camp_name"></span>
                                                                     <template x-if="siblingMatchType(week, cIdx, opt) === 'camp'">
@@ -282,7 +322,10 @@
                                                                 <div class="flex items-center gap-1 mt-0.5">
                                                                     <span class="text-[10px] font-bold" x-text="formatPrice(opt.price_cents)"></span>
                                                                     <template x-if="opt.lunch_provided">
-                                                                        <span class="text-[9px] text-teal-600" title="Lunch included">+L</span>
+                                                                        <span class="text-[9px] text-sawyer-500" title="Lunch included">+L</span>
+                                                                    </template>
+                                                                    <template x-if="opt.distance_miles !== null">
+                                                                        <span class="text-[9px] text-gray-400" x-text="opt.distance_miles + 'mi'"></span>
                                                                     </template>
                                                                     <span class="ml-auto text-[9px] font-medium px-1 py-px rounded-full"
                                                                           :class="{
@@ -305,11 +348,10 @@
                                                          x-transition:leave-start="opacity-100 scale-100"
                                                          x-transition:leave-end="opacity-0 scale-95"
                                                          class="absolute z-50 w-56 bg-white rounded-lg shadow-xl border border-gray-200 p-3 text-left pointer-events-none"
-                                                         :class="wIdx >= 7 ? 'right-full mr-1 top-0' : 'left-full ml-1 top-0'">
+                                                         :class="vIdx >= visibleWeeks().length - 2 ? 'right-full mr-1 top-0' : 'left-full ml-1 top-0'">
                                                         {{-- Header --}}
                                                         <div class="flex items-center gap-1.5 mb-2">
-                                                            <span class="w-2 h-2 rounded-full shrink-0"
-                                                                  :class="categoryDot[opt.category] || 'bg-gray-400'"></span>
+                                                            <span class="text-sm" x-text="categoryEmoji[opt.category] || '☀️'"></span>
                                                             <span class="text-xs font-bold text-gray-900" x-text="opt.camp_name"></span>
                                                         </div>
 
@@ -318,7 +360,7 @@
                                                         <div class="text-[10px] text-gray-500">
                                                             <span x-text="opt.neighborhood + ', ' + opt.borough"></span>
                                                             <template x-if="opt.distance_miles !== null">
-                                                                <span class="ml-1 text-teal-600 font-medium" x-text="'(' + opt.distance_miles + ' mi)'"></span>
+                                                                <span class="ml-1 text-sawyer-500 font-medium" x-text="'(' + opt.distance_miles + ' mi)'"></span>
                                                             </template>
                                                         </div>
 
@@ -335,7 +377,7 @@
                                                             <template x-if="opt.distance_miles !== null">
                                                                 <div>
                                                                     <span class="text-gray-400">Distance</span>
-                                                                    <div class="font-medium text-teal-600" x-text="opt.distance_miles + ' miles'"></div>
+                                                                    <div class="font-medium text-sawyer-500" x-text="opt.distance_miles + ' miles'"></div>
                                                                 </div>
                                                             </template>
                                                             <div>
@@ -394,11 +436,11 @@
                                                         class="text-[9px] font-medium px-1.5 py-0.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                                                     Block
                                                 </button>
-                                                <button @click.stop="toggleLock(cIdx, wIdx)"
+                                                <button @click.stop="toggleLock(cIdx, globalWeekIndex(week.week_start))"
                                                         class="text-[9px] font-medium px-1.5 py-0.5 rounded transition-colors"
                                                         :class="week.locked
                                                             ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                                                            : 'text-gray-400 hover:text-teal-600 hover:bg-teal-50'">
+                                                            : 'text-gray-400 hover:text-sawyer-500 hover:bg-sawyer-50'">
                                                     <span x-text="week.locked ? 'Locked' : 'Lock'"></span>
                                                 </button>
                                             </div>
@@ -433,11 +475,20 @@ function campFinder() {
         error: null,
         blockedWeeks: {},
         lockedCamps: {},
+        currentMonth: 0,
 
         weekStarts: [
             '2026-06-15', '2026-06-22', '2026-06-29',
             '2026-07-06', '2026-07-13', '2026-07-20', '2026-07-27',
             '2026-08-03', '2026-08-10', '2026-08-17',
+        ],
+
+        monthNames: ['June', 'July', 'August'],
+
+        monthWeekRanges: [
+            [0, 3],  // June: weeks 0-2 (3 weeks)
+            [3, 7],  // July: weeks 3-6 (4 weeks)
+            [7, 10], // August: weeks 7-9 (3 weeks)
         ],
 
         examples: [
@@ -447,7 +498,20 @@ function campFinder() {
             "My 8-year-old daughter loves theater and dance. Brooklyn area, up to $500/week.",
         ],
 
-        childColors: ['bg-teal-600', 'bg-indigo-600', 'bg-rose-600', 'bg-amber-600'],
+        childColors: ['bg-sawyer-500', 'bg-indigo-600', 'bg-rose-600', 'bg-amber-600'],
+
+        categoryEmoji: {
+            sports: '⚽',
+            arts: '🎨',
+            performing_arts: '🎭',
+            stem: '🔬',
+            nature: '🌿',
+            academic: '📚',
+            martial_arts: '🥋',
+            equestrian: '🐴',
+            pets: '🐾',
+            general: '☀️',
+        },
 
         categoryDot: {
             sports: 'bg-blue-500',
@@ -456,6 +520,9 @@ function campFinder() {
             stem: 'bg-orange-500',
             nature: 'bg-green-500',
             academic: 'bg-indigo-500',
+            martial_arts: 'bg-red-500',
+            equestrian: 'bg-amber-600',
+            pets: 'bg-lime-500',
             general: 'bg-gray-400',
         },
 
@@ -466,13 +533,38 @@ function campFinder() {
             stem: 'bg-orange-100 text-orange-700',
             nature: 'bg-green-100 text-green-700',
             academic: 'bg-indigo-100 text-indigo-700',
+            martial_arts: 'bg-red-100 text-red-700',
+            equestrian: 'bg-amber-100 text-amber-700',
+            pets: 'bg-lime-100 text-lime-700',
             general: 'bg-gray-100 text-gray-700',
         },
 
         gridStyle() {
-            const cols = 10;
+            const cols = this.visibleWeeks().length;
             const rows = this.results?.children.length || 1;
-            return `grid-template-columns: 90px repeat(${cols}, minmax(0, 1fr)); grid-template-rows: auto repeat(${rows}, 1fr);`;
+            return `grid-template-columns: 110px repeat(${cols}, minmax(0, 1fr)); grid-template-rows: auto repeat(${rows}, 1fr);`;
+        },
+
+        visibleWeeks() {
+            const [start, end] = this.monthWeekRanges[this.currentMonth];
+            return this.weekStarts.slice(start, end);
+        },
+
+        visibleChildWeeks(child) {
+            const [start, end] = this.monthWeekRanges[this.currentMonth];
+            return child.weeks.slice(start, end);
+        },
+
+        globalWeekIndex(weekStart) {
+            return this.weekStarts.indexOf(weekStart);
+        },
+
+        prevMonth() {
+            if (this.currentMonth > 0) this.currentMonth--;
+        },
+
+        nextMonth() {
+            if (this.currentMonth < 2) this.currentMonth++;
         },
 
         async submitPrompt() {
@@ -664,6 +756,21 @@ function campFinder() {
             return 'Waitlist — ' + rec.waitlist_count + ' ahead of you';
         },
 
+        isInterestMatch(child, opt) {
+            if (!opt) return false;
+            // Use backend flag if available, fall back to client-side check
+            if (typeof opt.interest_match !== 'undefined') return opt.interest_match;
+            return child.categories.includes(opt.category) || opt.category === 'general';
+        },
+
+        showAlsoDivider(child, options, oIdx) {
+            if (oIdx === 0) return false;
+            // Show divider at the boundary where interest matches end
+            const prev = options[oIdx - 1];
+            const curr = options[oIdx];
+            return this.isInterestMatch(child, prev) && !this.isInterestMatch(child, curr);
+        },
+
         siblingMatchType(week, cIdx, opt) {
             if (!this.results || this.results.children.length < 2) return null;
             let hasFacility = false;
@@ -686,7 +793,7 @@ function campFinder() {
             if (selected && locked) return 'bg-amber-50 ring-1 ring-amber-300';
             if (selected && sibType === 'camp') return 'bg-purple-50 ring-1 ring-purple-400';
             if (selected && sibType === 'facility') return 'bg-purple-50 ring-1 ring-purple-300';
-            if (selected) return 'bg-teal-50 ring-1 ring-teal-300';
+            if (selected) return 'bg-sawyer-50 ring-1 ring-sawyer-300';
             if (sibType === 'camp') return 'bg-purple-50/50 border border-dashed border-purple-200 hover:bg-purple-50';
             if (sibType === 'facility') return 'bg-purple-50/30 border border-dashed border-purple-100 hover:bg-purple-50';
             return 'hover:bg-gray-50';
