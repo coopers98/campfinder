@@ -103,15 +103,15 @@ INSTRUCTIONS;
                 'weeks' => $schema->array()->items($schema->object([
                     'week_start' => $schema->string()->required(),
                     'week_label' => $schema->string()->required(),
-                    'primary_recommendation' => $schema->object($recommendationSchema)->nullable(),
-                    'alternative' => $schema->object($recommendationSchema)->nullable(),
-                ]))->required(),
-            ]))->required(),
+                    'primary_recommendation' => $schema->object($recommendationSchema)->nullable()->withoutAdditionalProperties(),
+                    'alternative' => $schema->object($recommendationSchema)->nullable()->withoutAdditionalProperties(),
+                ])->withoutAdditionalProperties())->required(),
+            ])->withoutAdditionalProperties())->required(),
             'sibling_overlaps' => $schema->array()->items($schema->object([
                 'week_start' => $schema->string()->required(),
                 'facility_name' => $schema->string()->required(),
                 'children_names' => $schema->array()->items($schema->string())->required(),
-            ]))->required(),
+            ])->withoutAdditionalProperties())->required(),
             'total_estimated_cost_cents' => $schema->integer()->required(),
             'notes' => $schema->string()->required(),
         ];
