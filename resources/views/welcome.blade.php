@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    {{-- Loading overlay when retrying with results visible --}}
+    {{-- Loading overlay --}}
     <div x-show="loading && results" x-cloak class="fixed inset-0 bg-white/60 z-50 flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-lg px-6 py-4 flex items-center gap-3">
             <svg class="animate-spin w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24">
@@ -113,14 +113,18 @@
                         <h2 class="text-sm font-bold text-gray-900">Summer Camp Plan</h2>
                         <div class="flex items-center gap-1">
                             <span class="text-xs text-gray-500">Total:</span>
-                            <span class="text-sm font-bold text-teal-700" x-text="formatPrice(results.total_estimated_cost_cents)"></span>
+                            <span class="text-sm font-bold text-teal-700" x-text="formatPrice(calcTotal())"></span>
                         </div>
                         <template x-if="hasLockedOrBlocked()">
                             <div class="flex items-center gap-2">
-                                <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium"
-                                      x-text="countLocked() + ' locked'"></span>
-                                <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium"
-                                      x-text="countBlocked() + ' blocked'"></span>
+                                <template x-if="countLocked() > 0">
+                                    <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium"
+                                          x-text="countLocked() + ' locked'"></span>
+                                </template>
+                                <template x-if="countBlocked() > 0">
+                                    <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium"
+                                          x-text="countBlocked() + ' off'"></span>
+                                </template>
                             </div>
                         </template>
                     </div>
@@ -129,7 +133,7 @@
                             <button @click="retryWithConstraints()"
                                     :disabled="loading"
                                     class="text-xs bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors">
-                                Re-plan Unlocked Weeks
+                                Re-plan Unlocked
                             </button>
                         </template>
                         <button @click="clearConstraints()"
@@ -148,7 +152,7 @@
             {{-- Grid --}}
             <div class="flex-1 overflow-auto min-h-0">
                 <div class="grid min-h-full" :style="gridStyle()">
-                    {{-- Header row: empty corner + week labels --}}
+                    {{-- Header row --}}
                     <div class="sticky left-0 top-0 z-30 bg-gray-100 border-b border-r border-gray-200 px-2 py-2 flex items-end">
                         <span class="text-xs font-semibold text-gray-500">Children</span>
                     </div>
@@ -160,10 +164,10 @@
                         </div>
                     </template>
 
-                    {{-- Child rows — use display:contents wrapper to keep grid flat --}}
+                    {{-- Child rows --}}
                     <template x-for="(child, cIdx) in results.children" :key="cIdx">
                         <div class="contents">
-                            {{-- Child label (sticky left) --}}
+                            {{-- Child label --}}
                             <div class="sticky left-0 z-10 bg-white border-b border-r border-gray-200 px-2 py-2 flex items-start gap-2">
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 mt-0.5"
                                      :class="childColors[cIdx % childColors.length]">
@@ -177,116 +181,109 @@
 
                             {{-- Week cells --}}
                             <template x-for="(week, wIdx) in child.weeks" :key="week.week_start">
-                                <div class="border-b border-gray-100 p-1 relative group"
+                                <div class="border-b border-r border-gray-100 p-0.5 relative"
                                      :class="{
                                          'bg-gray-50': week.blocked,
-                                         'bg-amber-50/50': isLocked(cIdx, week.week_start),
-                                         'bg-white': !week.blocked && !isLocked(cIdx, week.week_start),
-                                         'border-r border-gray-100': wIdx < weekStarts.length - 1,
+                                         'bg-white': !week.blocked,
                                      }">
 
-                                    {{-- Blocked week --}}
+                                    {{-- Blocked --}}
                                     <template x-if="week.blocked">
-                                        <div class="h-full min-h-[80px] flex flex-col items-center justify-center">
+                                        <div class="h-full min-h-[100px] flex flex-col items-center justify-center">
                                             <div class="text-xs text-gray-400 font-medium">Off</div>
                                             <button @click="toggleBlock(cIdx, week.week_start)"
                                                     class="mt-1 text-[10px] text-teal-600 hover:text-teal-800">Unblock</button>
                                         </div>
                                     </template>
 
-                                    {{-- Camp card --}}
-                                    <template x-if="!week.blocked && week.primary_recommendation">
-                                        <div class="min-h-[80px]">
-                                            {{-- Action buttons (visible on hover) --}}
-                                            <div class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                                <button @click="toggleLock(cIdx, week)"
-                                                        class="p-0.5 rounded hover:bg-gray-100"
-                                                        :class="isLocked(cIdx, week.week_start) ? 'text-amber-500' : 'text-gray-400'">
-                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <template x-if="isLocked(cIdx, week.week_start)">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                                        </template>
-                                                        <template x-if="!isLocked(cIdx, week.week_start)">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
-                                                        </template>
-                                                    </svg>
+                                    {{-- Options list --}}
+                                    <template x-if="!week.blocked && week.options && week.options.length > 0">
+                                        <div class="space-y-0.5 min-h-[100px]">
+                                            {{-- Block button in corner --}}
+                                            <button @click="toggleBlock(cIdx, week.week_start)"
+                                                    class="absolute top-0.5 right-0.5 p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-gray-50 z-10 opacity-0 hover:opacity-100 transition-opacity"
+                                                    style="opacity: 0;"
+                                                    @mouseenter="$el.style.opacity=1" @mouseleave="$el.style.opacity=0">
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+
+                                            <template x-for="(opt, oIdx) in week.options" :key="opt.camp_id">
+                                                <div @click="selectOption(cIdx, wIdx, oIdx)"
+                                                     class="rounded p-1 cursor-pointer transition-all text-left"
+                                                     :class="{
+                                                         'bg-teal-50 ring-1 ring-teal-300': oIdx === week.selected_index && !week.locked,
+                                                         'bg-amber-50 ring-1 ring-amber-300': oIdx === week.selected_index && week.locked,
+                                                         'hover:bg-gray-50': oIdx !== week.selected_index,
+                                                     }">
+
+                                                    {{-- Selected indicator + lock --}}
+                                                    <div class="flex items-start gap-1">
+                                                        {{-- Radio dot --}}
+                                                        <div class="mt-0.5 shrink-0">
+                                                            <div class="w-3 h-3 rounded-full border-2 flex items-center justify-center"
+                                                                 :class="oIdx === week.selected_index
+                                                                    ? (week.locked ? 'border-amber-500 bg-amber-500' : 'border-teal-500 bg-teal-500')
+                                                                    : 'border-gray-300'">
+                                                                <template x-if="oIdx === week.selected_index && week.locked">
+                                                                    <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                                                    </svg>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Camp info --}}
+                                                        <div class="min-w-0 flex-1">
+                                                            <div class="flex items-center gap-1">
+                                                                <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                                                      :class="categoryDot[opt.category] || 'bg-gray-400'"></span>
+                                                                <span class="text-[10px] font-semibold text-gray-900 leading-tight truncate"
+                                                                      x-text="opt.camp_name"></span>
+                                                            </div>
+                                                            <div class="flex items-center justify-between mt-0.5">
+                                                                <span class="text-[10px] font-bold" x-text="formatPrice(opt.price_cents)"></span>
+                                                                <span class="text-[9px] font-medium px-1 py-px rounded-full"
+                                                                      :class="{
+                                                                          'bg-green-100 text-green-700': opt.availability_status === 'available',
+                                                                          'bg-yellow-100 text-yellow-700': opt.availability_status === 'almost_full',
+                                                                          'bg-red-100 text-red-700': opt.availability_status === 'waitlist'
+                                                                      }"
+                                                                      x-text="shortAvail(opt)"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            {{-- Lock / Sibling indicator row --}}
+                                            <div class="flex items-center justify-between px-1 pt-0.5">
+                                                <div class="flex items-center gap-1">
+                                                    <template x-if="isSiblingOverlap(week, cIdx)">
+                                                        <span class="text-[9px] bg-purple-100 text-purple-600 px-1 py-px rounded font-medium">Sibling</span>
+                                                    </template>
+                                                    <template x-if="selectedOpt(week)?.lunch_provided">
+                                                        <span class="text-[9px] text-gray-400">+lunch</span>
+                                                    </template>
+                                                </div>
+                                                <button @click.stop="toggleLock(cIdx, wIdx)"
+                                                        class="text-[9px] font-medium px-1.5 py-0.5 rounded transition-colors"
+                                                        :class="week.locked
+                                                            ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                                            : 'text-gray-400 hover:text-teal-600 hover:bg-teal-50'">
+                                                    <span x-text="week.locked ? 'Locked' : 'Lock'"></span>
                                                 </button>
-                                                <button @click="toggleBlock(cIdx, week.week_start)"
-                                                        class="p-0.5 rounded text-gray-400 hover:bg-gray-100 hover:text-red-500">
-                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                                                    </svg>
-                                                </button>
                                             </div>
-
-                                            {{-- Lock indicator --}}
-                                            <template x-if="isLocked(cIdx, week.week_start)">
-                                                <div class="absolute top-1 left-1">
-                                                    <svg class="w-3 h-3 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                                                    </svg>
-                                                </div>
-                                            </template>
-
-                                            {{-- Sibling overlap indicator --}}
-                                            <template x-if="isSiblingOverlap(week, child, cIdx)">
-                                                <div class="absolute top-1 left-1" :class="isLocked(cIdx, week.week_start) ? 'left-5' : ''">
-                                                    <svg class="w-3 h-3 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
-                                                    </svg>
-                                                </div>
-                                            </template>
-
-                                            {{-- Category dot + name --}}
-                                            <div class="flex items-start gap-1 mb-1 pr-6">
-                                                <span class="w-2 h-2 rounded-full mt-1 shrink-0"
-                                                      :class="categoryDot[week.primary_recommendation.category] || 'bg-gray-400'"></span>
-                                                <span class="text-xs font-semibold text-gray-900 leading-tight line-clamp-2"
-                                                      x-text="week.primary_recommendation.camp_name"></span>
-                                            </div>
-
-                                            {{-- Facility --}}
-                                            <div class="text-[10px] text-gray-500 truncate" x-text="week.primary_recommendation.facility_name"></div>
-
-                                            {{-- Price + schedule --}}
-                                            <div class="flex items-center justify-between mt-1">
-                                                <span class="text-[10px] text-gray-500" x-text="shortSchedule(week.primary_recommendation.schedule_type)"></span>
-                                                <span class="text-xs font-bold text-gray-900" x-text="formatPrice(week.primary_recommendation.price_cents)"></span>
-                                            </div>
-
-                                            {{-- Availability badge --}}
-                                            <div class="mt-1">
-                                                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-                                                      :class="{
-                                                          'bg-green-100 text-green-700': week.primary_recommendation.availability_status === 'available',
-                                                          'bg-yellow-100 text-yellow-700': week.primary_recommendation.availability_status === 'almost_full',
-                                                          'bg-red-100 text-red-700': week.primary_recommendation.availability_status === 'waitlist'
-                                                      }"
-                                                      x-text="shortAvail(week.primary_recommendation)"></span>
-                                                <template x-if="week.primary_recommendation.lunch_provided">
-                                                    <span class="text-[10px] text-gray-400 ml-1">+ lunch</span>
-                                                </template>
-                                            </div>
-
-                                            {{-- Alt toggle --}}
-                                            <template x-if="week.alternative && !isLocked(cIdx, week.week_start)">
-                                                <div class="mt-1 pt-1 border-t border-gray-100">
-                                                    <button @click="swapToAlt(cIdx, wIdx)"
-                                                            class="text-[10px] text-teal-600 hover:text-teal-800 font-medium">
-                                                        Swap alt
-                                                    </button>
-                                                    <div class="text-[10px] text-gray-400 truncate" x-text="week.alternative.camp_name"></div>
-                                                </div>
-                                            </template>
                                         </div>
                                     </template>
 
-                                    {{-- Empty week --}}
-                                    <template x-if="!week.blocked && !week.primary_recommendation">
-                                        <div class="min-h-[80px] flex flex-col items-center justify-center">
+                                    {{-- Empty --}}
+                                    <template x-if="!week.blocked && (!week.options || week.options.length === 0)">
+                                        <div class="min-h-[100px] flex flex-col items-center justify-center">
                                             <div class="text-[10px] text-gray-300">No match</div>
                                             <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="mt-1 text-[10px] text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">Block</button>
+                                                    class="mt-1 text-[10px] text-gray-400 hover:text-red-500">Block</button>
                                         </div>
                                     </template>
                                 </div>
@@ -307,8 +304,8 @@ function campFinder() {
         results: null,
         parsedCriteria: null,
         error: null,
-        blockedWeeks: {},   // { childIdx: [weekStart, ...] }
-        lockedCamps: {},    // { childIdx: { weekStart: recommendation } }
+        blockedWeeks: {},
+        lockedCamps: {},
 
         weekStarts: [
             '2026-06-15', '2026-06-22', '2026-06-29',
@@ -336,13 +333,13 @@ function campFinder() {
         },
 
         gridStyle() {
-            const cols = this.results ? this.results.children[0]?.weeks.length || 10 : 10;
-            return `grid-template-columns: 100px repeat(${cols}, minmax(0, 1fr)); grid-template-rows: auto repeat(${this.results?.children.length || 1}, 1fr);`;
+            const cols = 10;
+            const rows = this.results?.children.length || 1;
+            return `grid-template-columns: 90px repeat(${cols}, minmax(0, 1fr)); grid-template-rows: auto repeat(${rows}, 1fr);`;
         },
 
         async submitPrompt() {
             if (!this.prompt.trim() || this.loading) return;
-
             this.loading = true;
             this.error = null;
             this.results = null;
@@ -351,7 +348,7 @@ function campFinder() {
             this.lockedCamps = {};
 
             try {
-                const response = await fetch('/api/recommend', {
+                const res = await fetch('/api/recommend', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -360,13 +357,8 @@ function campFinder() {
                     },
                     body: JSON.stringify({ prompt: this.prompt }),
                 });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Something went wrong');
-                }
-
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong');
                 this.results = data.data;
                 this.parsedCriteria = data.parsed_criteria;
             } catch (err) {
@@ -378,12 +370,25 @@ function campFinder() {
 
         async retryWithConstraints() {
             if (this.loading || !this.parsedCriteria) return;
-
             this.loading = true;
             this.error = null;
 
+            // Collect locked selections
+            const locked = {};
+            for (const child of this.results.children) {
+                for (const [cIdx, c] of this.results.children.entries()) {
+                    if (!locked[cIdx]) locked[cIdx] = {};
+                    for (const week of c.weeks) {
+                        if (week.locked && week.options && week.options[week.selected_index]) {
+                            locked[cIdx][week.week_start] = week.options[week.selected_index];
+                        }
+                    }
+                }
+                break; // only need one pass
+            }
+
             try {
-                const response = await fetch('/api/recommend', {
+                const res = await fetch('/api/recommend', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -394,16 +399,11 @@ function campFinder() {
                         prompt: this.prompt,
                         parsed_criteria: this.parsedCriteria,
                         blocked_weeks: this.blockedWeeks,
-                        locked_camps: this.lockedCamps,
+                        locked_camps: locked,
                     }),
                 });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Something went wrong');
-                }
-
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong');
                 this.results = data.data;
             } catch (err) {
                 this.error = err.message || 'Failed to re-plan.';
@@ -412,80 +412,48 @@ function campFinder() {
             }
         },
 
-        toggleBlock(childIdx, weekStart) {
-            if (!this.blockedWeeks[childIdx]) {
-                this.blockedWeeks[childIdx] = [];
-            }
+        selectOption(cIdx, wIdx, oIdx) {
+            const week = this.results.children[cIdx].weeks[wIdx];
+            if (week.locked) return; // can't change locked
+            week.selected_index = oIdx;
+        },
 
-            const idx = this.blockedWeeks[childIdx].indexOf(weekStart);
+        toggleBlock(cIdx, weekStart) {
+            if (!this.blockedWeeks[cIdx]) this.blockedWeeks[cIdx] = [];
+            const idx = this.blockedWeeks[cIdx].indexOf(weekStart);
             if (idx >= 0) {
-                this.blockedWeeks[childIdx].splice(idx, 1);
+                this.blockedWeeks[cIdx].splice(idx, 1);
             } else {
-                this.blockedWeeks[childIdx].push(weekStart);
-                // Remove any lock for this week if blocking
-                if (this.lockedCamps[childIdx]) {
-                    delete this.lockedCamps[childIdx][weekStart];
-                }
+                this.blockedWeeks[cIdx].push(weekStart);
             }
-
-            // Update local state immediately
-            const child = this.results.children[childIdx];
-            const week = child.weeks.find(w => w.week_start === weekStart);
+            const week = this.results.children[cIdx].weeks.find(w => w.week_start === weekStart);
             if (week) {
                 week.blocked = !week.blocked;
-                if (week.blocked) {
-                    week.primary_recommendation = null;
-                    week.alternative = null;
-                }
-            }
-
-            this.recalcCost();
-        },
-
-        toggleLock(childIdx, week) {
-            if (!this.lockedCamps[childIdx]) {
-                this.lockedCamps[childIdx] = {};
-            }
-
-            if (this.lockedCamps[childIdx][week.week_start]) {
-                delete this.lockedCamps[childIdx][week.week_start];
-            } else if (week.primary_recommendation) {
-                this.lockedCamps[childIdx][week.week_start] = week.primary_recommendation;
+                if (week.blocked) week.locked = false;
             }
         },
 
-        isLocked(childIdx, weekStart) {
-            return !!(this.lockedCamps[childIdx] && this.lockedCamps[childIdx][weekStart]);
+        toggleLock(cIdx, wIdx) {
+            const week = this.results.children[cIdx].weeks[wIdx];
+            week.locked = !week.locked;
         },
 
-        swapToAlt(childIdx, weekIdx) {
-            const week = this.results.children[childIdx].weeks[weekIdx];
-            if (!week.alternative) return;
-
-            const temp = week.primary_recommendation;
-            week.primary_recommendation = week.alternative;
-            week.alternative = temp;
-
-            // If this week was locked, update the lock
-            if (this.isLocked(childIdx, week.week_start)) {
-                this.lockedCamps[childIdx][week.week_start] = week.primary_recommendation;
-            }
-
-            this.recalcCost();
+        selectedOpt(week) {
+            if (!week.options || week.options.length === 0) return null;
+            return week.options[week.selected_index || 0];
         },
 
-        recalcCost() {
+        calcTotal() {
             let total = 0;
-            if (this.results) {
-                for (const child of this.results.children) {
-                    for (const week of child.weeks) {
-                        if (week.primary_recommendation && !week.blocked) {
-                            total += week.primary_recommendation.price_cents;
-                        }
+            if (!this.results) return 0;
+            for (const child of this.results.children) {
+                for (const week of child.weeks) {
+                    if (!week.blocked && week.options && week.options.length > 0) {
+                        total += week.options[week.selected_index || 0].price_cents;
                     }
                 }
-                this.results.total_estimated_cost_cents = total;
             }
+            return total;
         },
 
         hasLockedOrBlocked() {
@@ -493,30 +461,25 @@ function campFinder() {
         },
 
         countLocked() {
+            if (!this.results) return 0;
             let count = 0;
-            for (const childIdx in this.lockedCamps) {
-                count += Object.keys(this.lockedCamps[childIdx]).length;
+            for (const c of this.results.children) {
+                for (const w of c.weeks) { if (w.locked) count++; }
             }
             return count;
         },
 
         countBlocked() {
             let count = 0;
-            for (const childIdx in this.blockedWeeks) {
-                count += this.blockedWeeks[childIdx].length;
-            }
+            for (const k in this.blockedWeeks) count += this.blockedWeeks[k].length;
             return count;
         },
 
         clearConstraints() {
             this.blockedWeeks = {};
-            this.lockedCamps = {};
-            // Unblock all weeks in local state
             if (this.results) {
-                for (const child of this.results.children) {
-                    for (const week of child.weeks) {
-                        week.blocked = false;
-                    }
+                for (const c of this.results.children) {
+                    for (const w of c.weeks) { w.blocked = false; w.locked = false; }
                 }
             }
         },
@@ -539,22 +502,18 @@ function campFinder() {
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         },
 
-        shortSchedule(type) {
-            const map = { full_day: 'Full', half_day_am: 'AM', half_day_pm: 'PM' };
-            return map[type] || type;
-        },
-
         shortAvail(rec) {
             if (rec.availability_status === 'available') return rec.spots_remaining + ' spots';
             if (rec.availability_status === 'almost_full') return rec.spots_remaining + ' left!';
-            return 'Waitlist';
+            return 'WL:' + rec.waitlist_count;
         },
 
-        isSiblingOverlap(week, child, childIdx) {
-            if (!this.results?.sibling_overlaps || !week.primary_recommendation) return false;
+        isSiblingOverlap(week, cIdx) {
+            if (!this.results?.sibling_overlaps) return false;
+            const sel = this.selectedOpt(week);
+            if (!sel) return false;
             return this.results.sibling_overlaps.some(o =>
-                o.week_start === week.week_start &&
-                o.facility_name === week.primary_recommendation.facility_name
+                o.week_start === week.week_start && o.facility_name === sel.facility_name
             );
         },
     };
@@ -563,12 +522,6 @@ function campFinder() {
 
 <style>
     [x-cloak] { display: none !important; }
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
 </style>
 
 </body>

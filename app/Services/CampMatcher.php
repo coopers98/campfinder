@@ -52,10 +52,16 @@ class CampMatcher
                     weekStart: $weekStart,
                 );
 
+                // Best waitlisted camp with a category match (separate from top-3)
+                $bestWaitlist = $candidates
+                    ->filter(fn ($c) => $c['availability_status'] === 'waitlist' && $c['score'] >= 30)
+                    ->first();
+
                 $childShortlist[] = [
                     'week_start' => $weekStart,
                     'week_label' => $this->weekLabels[$weekStart],
-                    'candidates' => $candidates->take(3)->values()->toArray(),
+                    'candidates' => $candidates->take(5)->values()->toArray(),
+                    'best_waitlist' => $bestWaitlist,
                 ];
             }
 
@@ -192,27 +198,38 @@ class CampMatcher
                         'week_start' => $weekStart,
                         'week_label' => $week['week_label'],
                         'blocked' => false,
-                        'primary_recommendation' => $locked,
-                        'alternative' => null,
                         'locked' => true,
+                        'options' => [$locked],
+                        'selected_index' => 0,
                     ];
                     continue;
                 }
 
-                $candidates = $week['candidates'];
-                $primary = $candidates[0] ?? null;
-                $alternative = $candidates[1] ?? null;
+                // Build options list: up to 3 candidates + best waitlist
+                $options = [];
+                $candidateIds = [];
+                foreach ($week['candidates'] as $candidate) {
+                    $options[] = $this->formatRecommendation($candidate);
+                    $candidateIds[] = $candidate['id'];
+                }
 
-                if ($primary) {
-                    $totalCost += $primary['price_cents'];
+                // Add best waitlist if it's not already in the candidates
+                $waitlistOption = $week['best_waitlist'] ?? null;
+                if ($waitlistOption && !in_array($waitlistOption['id'], $candidateIds)) {
+                    $options[] = $this->formatRecommendation($waitlistOption);
+                }
+
+                if (!empty($options)) {
+                    $totalCost += $options[0]['price_cents'];
                 }
 
                 $weeks[] = [
                     'week_start' => $weekStart,
                     'week_label' => $week['week_label'],
                     'blocked' => false,
-                    'primary_recommendation' => $primary ? $this->formatRecommendation($primary) : null,
-                    'alternative' => $alternative ? $this->formatRecommendation($alternative) : null,
+                    'locked' => false,
+                    'options' => $options,
+                    'selected_index' => 0,
                 ];
             }
 
