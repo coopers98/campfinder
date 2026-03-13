@@ -32,10 +32,13 @@
     <div x-show="!results" class="flex-1 flex items-start justify-center overflow-auto bg-gradient-to-b from-sawyer-50 via-sawyer-50/30 to-gray-50">
         <div class="w-full max-w-2xl mx-auto px-4 pt-12 pb-8 text-center">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-                Find the Perfect <span class="text-sawyer-500">Summer Camp</span>
+                Schedule the Best <span class="text-sawyer-500">Summer</span> Ever!
             </h1>
-            <p class="text-base text-gray-600 mb-8 max-w-xl mx-auto">
+            <p class="text-base text-gray-600 mb-4 max-w-xl mx-auto">
                 Tell us about your children and we'll plan their entire summer with personalized camp recommendations across NYC.
+            </p>
+            <p class="text-sm text-gray-400 mb-8 max-w-lg mx-auto">
+                A hackathon prototype by <span class="font-semibold text-gray-500">Sawyer</span> — exploring how AI can collapse days of camp research into seconds. Describe your family in plain English and get a complete, interactive 10-week summer plan you can refine and share.
             </p>
 
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-left">
@@ -98,6 +101,199 @@
         </div>
     </div>
 
+    {{-- Copied toast --}}
+    <div x-show="showCopiedToast" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 translate-y-2"
+         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        Link copied to clipboard!
+    </div>
+
+    {{-- Review Selections slide-over --}}
+    <div x-show="showReview" x-cloak class="fixed inset-0 z-[60]" @keydown.escape.window="showReview = false">
+        {{-- Backdrop --}}
+        <div x-show="showReview"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             class="absolute inset-0 bg-black/30"
+             @click="showReview = false"></div>
+        {{-- Panel --}}
+        <div x-show="showReview"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full"
+             class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col">
+            {{-- Header --}}
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Review Summer Plan</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Selected camps for all children</p>
+                </div>
+                <button @click="showReview = false" class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="flex-1 overflow-y-auto px-6 py-4">
+                <template x-for="(child, cIdx) in results?.children || []" :key="cIdx">
+                    <div class="mb-6">
+                        {{-- Child header --}}
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
+                                 :class="childColors[cIdx % childColors.length]">
+                                <span x-text="child.name.charAt(0).toUpperCase()"></span>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-gray-900" x-text="child.name"></div>
+                                <div class="text-xs text-gray-500" x-text="'Age ' + child.age + ' · ' + child.categories.map(c => formatCategory(c)).join(', ')"></div>
+                            </div>
+                        </div>
+
+                        {{-- Week rows --}}
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <template x-for="(week, wIdx) in child.weeks" :key="week.week_start">
+                                <div class="flex items-center border-b border-gray-100 last:border-b-0"
+                                     :class="week.blocked ? 'bg-gray-50' : ''">
+                                    {{-- Week label --}}
+                                    <div class="w-20 shrink-0 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-100">
+                                        <div x-text="'Wk ' + (wIdx + 1)"></div>
+                                        <div class="text-[10px] text-gray-400" x-text="shortWeekLabel(week.week_start)"></div>
+                                    </div>
+                                    {{-- Camp info or blocked --}}
+                                    <div class="flex-1 px-3 py-2">
+                                        <template x-if="week.blocked">
+                                            <span class="text-xs text-gray-400 italic">Blocked</span>
+                                        </template>
+                                        <template x-if="!week.blocked && week.options && week.options.length > 0">
+                                            <div class="flex items-center justify-between">
+                                                <div class="min-w-0">
+                                                    <div class="flex items-center gap-1">
+                                                        <span class="text-xs" x-text="categoryEmoji[week.options[week.selected_index || 0].category] || '☀️'"></span>
+                                                        <span class="text-xs font-semibold text-gray-900 truncate"
+                                                              x-text="week.options[week.selected_index || 0].camp_name"></span>
+                                                    </div>
+                                                    <div class="text-[10px] text-gray-500 truncate"
+                                                         x-text="week.options[week.selected_index || 0].facility_name + ' · ' + week.options[week.selected_index || 0].neighborhood"></div>
+                                                </div>
+                                                <div class="text-xs font-bold text-gray-900 shrink-0 ml-2"
+                                                     x-text="formatPrice(week.options[week.selected_index || 0].price_cents)"></div>
+                                            </div>
+                                        </template>
+                                        <template x-if="!week.blocked && (!week.options || week.options.length === 0)">
+                                            <span class="text-xs text-gray-400 italic">No match</span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- Child subtotal --}}
+                        <div class="flex items-center justify-between mt-2 px-1">
+                            <span class="text-xs font-medium text-gray-500" x-text="child.name + ' subtotal'"></span>
+                            <span class="text-sm font-bold text-gray-900" x-text="formatPrice(childSubtotal(child))"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t border-gray-200 shrink-0 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-bold text-gray-900">Grand Total (10 weeks)</span>
+                    <span class="text-xl font-bold text-sawyer-500" x-text="formatPrice(calcTotal())"></span>
+                </div>
+                <button @click="showRegisterModal = true"
+                        class="w-full bg-sawyer-500 hover:bg-sawyer-600 text-white font-bold py-3 rounded-xl text-sm transition-colors">
+                    Register for Camps
+                </button>
+                <button @click="sharePlan()"
+                        class="w-full bg-white border border-gray-200 hover:border-sawyer-300 text-gray-700 font-semibold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                    Share Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Register for Camps Modal --}}
+    <div x-show="showRegisterModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center"
+         @keydown.escape.window="showRegisterModal = false">
+        <div x-show="showRegisterModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             class="absolute inset-0 bg-black/40"
+             @click="showRegisterModal = false"></div>
+        <div x-show="showRegisterModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
+            <div class="w-14 h-14 bg-sawyer-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">One-Click Registration</h3>
+            <p class="text-sm text-gray-600 mb-4">
+                This would register
+                <span class="font-semibold" x-text="results?.children?.length || 0"></span>
+                <span x-text="(results?.children?.length || 0) === 1 ? 'child' : 'children'"></span>
+                across
+                <span class="font-semibold" x-text="countSelectedWeeks()"></span>
+                camp weeks in a single transaction, including:
+            </p>
+            <ul class="text-xs text-gray-500 text-left space-y-1 mb-4 px-4">
+                <li class="flex items-start gap-2">
+                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Secure spot reservations at each camp</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Payment processing for <span class="font-semibold" x-text="formatPrice(calcTotal())"></span> total</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Confirmation emails with camp details</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Waitlist auto-enrollment where spots are full</span>
+                </li>
+            </ul>
+            <p class="text-xs text-gray-400 italic mb-5">This is a hackathon prototype — registration is not yet connected.</p>
+            <div class="flex gap-3">
+                <button @click="showRegisterModal = false"
+                        class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                    Close
+                </button>
+                <button @click="showRegisterModal = false"
+                        class="flex-1 bg-sawyer-500 hover:bg-sawyer-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
+                    Got It!
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Error --}}
     <div x-show="error" x-cloak class="px-4 py-2 shrink-0">
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg flex items-center justify-between text-sm">
@@ -142,6 +338,20 @@
                         </template>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button @click="showReview = true"
+                                class="text-xs bg-white border border-gray-200 hover:border-sawyer-300 hover:bg-sawyer-50 text-gray-700 font-semibold px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Review Plan
+                        </button>
+                        <button @click="sharePlan()"
+                                class="text-xs bg-white border border-gray-200 hover:border-sawyer-300 hover:bg-sawyer-50 text-gray-700 font-semibold px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                            </svg>
+                            Share
+                        </button>
                         <template x-if="hasLockedOrBlocked()">
                             <button @click="retryWithConstraints()"
                                     :disabled="loading"
@@ -324,13 +534,13 @@
                                                                           x-text="opt.camp_name"></span>
                                                                     <template x-if="siblingMatchType(week, cIdx, opt) === 'camp'">
                                                                         <span class="shrink-0 text-[10px] px-1 rounded-sm font-bold border"
-                                                                              :class="siblingBadgeBg[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeText[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeBorder[siblingMatchChildIdx(week, cIdx, opt) % 4]"
-                                                                              :title="'Same camp as ' + (results.children[siblingMatchChildIdx(week, cIdx, opt)]?.name || 'sibling')">SAME</span>
+                                                                              :class="facilityBadgeStyles[sharedFacilityColorIdx(week, opt) % facilityBadgeStyles.length]"
+                                                                              :title="'Same camp at ' + opt.facility_name">SAME</span>
                                                                     </template>
                                                                     <template x-if="siblingMatchType(week, cIdx, opt) === 'facility'">
                                                                         <span class="shrink-0 text-[10px] px-1 rounded-sm font-bold border"
-                                                                              :class="siblingBadgeBg[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeText[siblingMatchChildIdx(week, cIdx, opt) % 4] + ' ' + siblingBadgeBorder[siblingMatchChildIdx(week, cIdx, opt) % 4]"
-                                                                              :title="'Same facility as ' + (results.children[siblingMatchChildIdx(week, cIdx, opt)]?.name || 'sibling')">FAC</span>
+                                                                              :class="facilityBadgeStyles[sharedFacilityColorIdx(week, opt) % facilityBadgeStyles.length]"
+                                                                              :title="'Same facility: ' + opt.facility_name">FAC</span>
                                                                     </template>
                                                                 </div>
                                                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -490,6 +700,9 @@ function campFinder() {
         blockedWeeks: {},
         lockedCamps: {},
         currentMonth: 0,
+        showReview: false,
+        showCopiedToast: false,
+        showRegisterModal: false,
 
         weekStarts: [
             '2026-06-15', '2026-06-22', '2026-06-29',
@@ -513,9 +726,15 @@ function campFinder() {
         ],
 
         childColors: ['bg-sawyer-500', 'bg-indigo-600', 'bg-rose-600', 'bg-amber-600'],
-        siblingBadgeBg: ['bg-sawyer-100', 'bg-indigo-100', 'bg-rose-100', 'bg-amber-100'],
-        siblingBadgeText: ['text-sawyer-700', 'text-indigo-700', 'text-rose-700', 'text-amber-700'],
-        siblingBadgeBorder: ['border-sawyer-300', 'border-indigo-300', 'border-rose-300', 'border-amber-300'],
+        // Colors for shared facility badges — same facility gets same color across children
+        facilityBadgeStyles: [
+            'bg-blue-100 text-blue-700 border-blue-300',
+            'bg-emerald-100 text-emerald-700 border-emerald-300',
+            'bg-violet-100 text-violet-700 border-violet-300',
+            'bg-orange-100 text-orange-700 border-orange-300',
+            'bg-cyan-100 text-cyan-700 border-cyan-300',
+            'bg-pink-100 text-pink-700 border-pink-300',
+        ],
 
         categoryEmoji: {
             sports: '⚽',
@@ -613,6 +832,7 @@ function campFinder() {
                 const data = await res.json();
                 if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong');
                 this.results = data.data;
+                this.clearFacilityCache();
                 this.parsedCriteria = data.parsed_criteria;
             } catch (err) {
                 this.error = err.message || 'Failed to get recommendations.';
@@ -661,6 +881,7 @@ function campFinder() {
                 const data = await res.json();
                 if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong');
                 this.results = data.data;
+                this.clearFacilityCache();
             } catch (err) {
                 this.error = err.message || 'Failed to re-plan.';
             } finally {
@@ -810,30 +1031,180 @@ function campFinder() {
             return hasFacility ? 'facility' : null;
         },
 
-        // Returns the index of the sibling child that shares a facility with this option
-        siblingMatchChildIdx(week, cIdx, opt) {
-            if (!this.results || this.results.children.length < 2) return -1;
-            for (let i = 0; i < this.results.children.length; i++) {
-                if (i === cIdx) continue;
-                const otherWeek = this.results.children[i].weeks.find(w => w.week_start === week.week_start);
-                if (!otherWeek || otherWeek.blocked) continue;
-                const otherOpts = otherWeek.options || [];
-                if (otherOpts.some(o => o.facility_id === opt.facility_id)) return i;
+        // Returns a stable color index for a shared facility in a given week.
+        // Same facility_id in the same week always gets the same color across all children.
+        sharedFacilityColorIdx(week, opt) {
+            if (!this._sharedFacilityMap) this._sharedFacilityMap = {};
+            const key = week.week_start;
+            if (!this._sharedFacilityMap[key]) {
+                // Build map of facility_id -> color index for this week
+                const facilityChildren = {};
+                for (const child of this.results.children) {
+                    const w = child.weeks.find(w => w.week_start === week.week_start);
+                    if (!w || w.blocked || !w.options) continue;
+                    for (const o of w.options) {
+                        if (!facilityChildren[o.facility_id]) facilityChildren[o.facility_id] = new Set();
+                        facilityChildren[o.facility_id].add(child.name);
+                    }
+                }
+                // Only keep facilities shared by 2+ children, assign color indices
+                const map = {};
+                let colorIdx = 0;
+                for (const [fid, children] of Object.entries(facilityChildren)) {
+                    if (children.size > 1) {
+                        map[fid] = colorIdx++;
+                    }
+                }
+                this._sharedFacilityMap[key] = map;
             }
-            return -1;
+            return this._sharedFacilityMap[key][opt.facility_id] ?? -1;
+        },
+
+        // Invalidate shared facility cache when results change
+        clearFacilityCache() {
+            this._sharedFacilityMap = {};
+        },
+
+        childSubtotal(child) {
+            let total = 0;
+            for (const week of child.weeks) {
+                if (!week.blocked && week.options && week.options.length > 0) {
+                    total += week.options[week.selected_index || 0].price_cents;
+                }
+            }
+            return total;
+        },
+
+        countSelectedWeeks() {
+            if (!this.results) return 0;
+            let count = 0;
+            for (const child of this.results.children) {
+                for (const week of child.weeks) {
+                    if (!week.blocked && week.options && week.options.length > 0) count++;
+                }
+            }
+            return count;
+        },
+
+        buildSharePayload() {
+            const selections = {};
+            for (const [cIdx, child] of this.results.children.entries()) {
+                selections[cIdx] = {};
+                for (const week of child.weeks) {
+                    selections[cIdx][week.week_start] = {
+                        s: week.selected_index || 0,
+                        l: week.locked ? 1 : 0,
+                        b: week.blocked ? 1 : 0,
+                    };
+                }
+            }
+            return {
+                p: this.prompt,
+                c: this.parsedCriteria,
+                sel: selections,
+            };
+        },
+
+        async sharePlan() {
+            const payload = this.buildSharePayload();
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            const url = window.location.origin + window.location.pathname + '#plan=' + encoded;
+            try {
+                await navigator.clipboard.writeText(url);
+                this.showCopiedToast = true;
+                setTimeout(() => { this.showCopiedToast = false; }, 2500);
+            } catch {
+                // Fallback
+                prompt('Copy this link:', url);
+            }
+        },
+
+        async loadFromHash() {
+            const hash = window.location.hash;
+            if (!hash.startsWith('#plan=')) return;
+            try {
+                const encoded = hash.substring(6);
+                const payload = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+                this.prompt = payload.p || '';
+                this.parsedCriteria = payload.c || null;
+                if (!this.parsedCriteria) return;
+
+                this.loading = true;
+                const res = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: this.prompt,
+                        parsed_criteria: this.parsedCriteria,
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load shared plan');
+                this.results = data.data;
+                this.clearFacilityCache();
+
+                // Apply saved selections
+                if (payload.sel) {
+                    for (const [cIdx, weeks] of Object.entries(payload.sel)) {
+                        const child = this.results.children[parseInt(cIdx)];
+                        if (!child) continue;
+                        for (const week of child.weeks) {
+                            const saved = weeks[week.week_start];
+                            if (!saved) continue;
+                            week.selected_index = saved.s || 0;
+                            week.locked = !!saved.l;
+                            week.blocked = !!saved.b;
+                            if (saved.b) {
+                                if (!this.blockedWeeks[cIdx]) this.blockedWeeks[cIdx] = [];
+                                this.blockedWeeks[cIdx].push(week.week_start);
+                            }
+                        }
+                    }
+                }
+                // Clear hash after loading
+                history.replaceState(null, '', window.location.pathname);
+            } catch (err) {
+                this.error = err.message || 'Failed to load shared plan.';
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        init() {
+            this.loadFromHash();
         },
 
         optionRowClass(week, cIdx, oIdx, opt) {
             const selected = oIdx === week.selected_index;
             const locked = week.locked;
             const sibType = this.siblingMatchType(week, cIdx, opt);
+            const colorIdx = this.sharedFacilityColorIdx(week, opt);
+            // Map color index to light bg tints for row highlights
+            const sibBgSelected = [
+                'bg-blue-50 ring-1 ring-blue-300',
+                'bg-emerald-50 ring-1 ring-emerald-300',
+                'bg-violet-50 ring-1 ring-violet-300',
+                'bg-orange-50 ring-1 ring-orange-300',
+                'bg-cyan-50 ring-1 ring-cyan-300',
+                'bg-pink-50 ring-1 ring-pink-300',
+            ];
+            const sibBgUnselected = [
+                'bg-blue-50/40 border border-dashed border-blue-200 hover:bg-blue-50',
+                'bg-emerald-50/40 border border-dashed border-emerald-200 hover:bg-emerald-50',
+                'bg-violet-50/40 border border-dashed border-violet-200 hover:bg-violet-50',
+                'bg-orange-50/40 border border-dashed border-orange-200 hover:bg-orange-50',
+                'bg-cyan-50/40 border border-dashed border-cyan-200 hover:bg-cyan-50',
+                'bg-pink-50/40 border border-dashed border-pink-200 hover:bg-pink-50',
+            ];
 
             if (selected && locked) return 'bg-amber-50 ring-1 ring-amber-300';
-            if (selected && sibType === 'camp') return 'bg-purple-50 ring-1 ring-purple-400';
-            if (selected && sibType === 'facility') return 'bg-purple-50 ring-1 ring-purple-300';
+            if (selected && sibType && colorIdx >= 0) return sibBgSelected[colorIdx % sibBgSelected.length];
             if (selected) return 'bg-sawyer-50 ring-1 ring-sawyer-300';
-            if (sibType === 'camp') return 'bg-purple-50/50 border border-dashed border-purple-200 hover:bg-purple-50';
-            if (sibType === 'facility') return 'bg-purple-50/30 border border-dashed border-purple-100 hover:bg-purple-50';
+            if (sibType && colorIdx >= 0) return sibBgUnselected[colorIdx % sibBgUnselected.length];
             return 'hover:bg-gray-50';
         },
     };
