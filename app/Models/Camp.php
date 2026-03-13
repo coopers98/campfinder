@@ -67,7 +67,7 @@ class Camp extends Model
 
     public function scopeInWeek($query, string $weekStart)
     {
-        return $query->where('week_start', $weekStart);
+        return $query->whereDate('week_start', $weekStart);
     }
 
     public function scopeAvailable($query)
