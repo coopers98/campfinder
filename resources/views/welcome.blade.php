@@ -184,7 +184,7 @@
 
                             {{-- Week cells --}}
                             <template x-for="(week, wIdx) in child.weeks" :key="week.week_start">
-                                <div class="border-b border-r border-gray-100 p-0.5 relative"
+                                <div class="border-b border-r border-gray-100 p-0.5 relative group/cell"
                                      :class="{
                                          'bg-gray-50': week.blocked,
                                          'bg-white': !week.blocked,
@@ -204,57 +204,124 @@
                                         <div class="space-y-0.5 min-h-[100px]">
                                             {{-- Block button in corner --}}
                                             <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="absolute top-0.5 right-0.5 p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-gray-50 z-10 opacity-0 hover:opacity-100 transition-opacity"
-                                                    style="opacity: 0;"
-                                                    @mouseenter="$el.style.opacity=1" @mouseleave="$el.style.opacity=0">
+                                                    class="absolute top-0.5 right-0.5 p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-gray-100 z-20 opacity-0 group-hover/cell:opacity-100 transition-opacity">
                                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                                 </svg>
                                             </button>
 
                                             <template x-for="(opt, oIdx) in week.options" :key="opt.camp_id">
-                                                <div @click="selectOption(cIdx, wIdx, oIdx)"
-                                                     class="rounded p-1 cursor-pointer transition-all text-left"
-                                                     :class="{
-                                                         'bg-teal-50 ring-1 ring-teal-300': oIdx === week.selected_index && !week.locked,
-                                                         'bg-amber-50 ring-1 ring-amber-300': oIdx === week.selected_index && week.locked,
-                                                         'hover:bg-gray-50': oIdx !== week.selected_index,
-                                                     }">
+                                                <div class="relative"
+                                                     x-data="{ showTip: false }"
+                                                     @mouseenter="showTip = true" @mouseleave="showTip = false">
+                                                    <div @click="selectOption(cIdx, wIdx, oIdx)"
+                                                         class="rounded p-1 cursor-pointer transition-all text-left"
+                                                         :class="{
+                                                             'bg-teal-50 ring-1 ring-teal-300': oIdx === week.selected_index && !week.locked,
+                                                             'bg-amber-50 ring-1 ring-amber-300': oIdx === week.selected_index && week.locked,
+                                                             'hover:bg-gray-50': oIdx !== week.selected_index,
+                                                         }">
 
-                                                    {{-- Selected indicator + lock --}}
-                                                    <div class="flex items-start gap-1">
-                                                        {{-- Radio dot --}}
-                                                        <div class="mt-0.5 shrink-0">
-                                                            <div class="w-3 h-3 rounded-full border-2 flex items-center justify-center"
-                                                                 :class="oIdx === week.selected_index
-                                                                    ? (week.locked ? 'border-amber-500 bg-amber-500' : 'border-teal-500 bg-teal-500')
-                                                                    : 'border-gray-300'">
-                                                                <template x-if="oIdx === week.selected_index && week.locked">
-                                                                    <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                                                                    </svg>
-                                                                </template>
+                                                        <div class="flex items-start gap-1">
+                                                            {{-- Radio dot --}}
+                                                            <div class="mt-0.5 shrink-0">
+                                                                <div class="w-3 h-3 rounded-full border-2 flex items-center justify-center"
+                                                                     :class="oIdx === week.selected_index
+                                                                        ? (week.locked ? 'border-amber-500 bg-amber-500' : 'border-teal-500 bg-teal-500')
+                                                                        : 'border-gray-300'">
+                                                                    <template x-if="oIdx === week.selected_index && week.locked">
+                                                                        <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                                                        </svg>
+                                                                    </template>
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- Camp info --}}
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="flex items-center gap-1">
+                                                                    <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                                                          :class="categoryDot[opt.category] || 'bg-gray-400'"></span>
+                                                                    <span class="text-[10px] font-semibold text-gray-900 leading-tight truncate"
+                                                                          x-text="opt.camp_name"></span>
+                                                                </div>
+                                                                <div class="flex items-center justify-between mt-0.5">
+                                                                    <span class="text-[10px] font-bold" x-text="formatPrice(opt.price_cents)"></span>
+                                                                    <span class="text-[9px] font-medium px-1 py-px rounded-full"
+                                                                          :class="{
+                                                                              'bg-green-100 text-green-700': opt.availability_status === 'available',
+                                                                              'bg-yellow-100 text-yellow-700': opt.availability_status === 'almost_full',
+                                                                              'bg-red-100 text-red-700': opt.availability_status === 'waitlist'
+                                                                          }"
+                                                                          x-text="shortAvail(opt)"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Hover tooltip --}}
+                                                    <div x-show="showTip" x-cloak
+                                                         x-transition:enter="transition ease-out duration-100"
+                                                         x-transition:enter-start="opacity-0 scale-95"
+                                                         x-transition:enter-end="opacity-100 scale-100"
+                                                         x-transition:leave="transition ease-in duration-75"
+                                                         x-transition:leave-start="opacity-100 scale-100"
+                                                         x-transition:leave-end="opacity-0 scale-95"
+                                                         class="absolute z-50 w-56 bg-white rounded-lg shadow-xl border border-gray-200 p-3 text-left pointer-events-none"
+                                                         :class="wIdx >= 7 ? 'right-full mr-1 top-0' : 'left-full ml-1 top-0'">
+                                                        {{-- Header --}}
+                                                        <div class="flex items-center gap-1.5 mb-2">
+                                                            <span class="w-2 h-2 rounded-full shrink-0"
+                                                                  :class="categoryDot[opt.category] || 'bg-gray-400'"></span>
+                                                            <span class="text-xs font-bold text-gray-900" x-text="opt.camp_name"></span>
+                                                        </div>
+
+                                                        {{-- Facility --}}
+                                                        <div class="text-[11px] text-gray-700 font-medium" x-text="opt.facility_name"></div>
+                                                        <div class="text-[10px] text-gray-500" x-text="opt.neighborhood + ', ' + opt.borough"></div>
+
+                                                        {{-- Details grid --}}
+                                                        <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-[10px]">
+                                                            <div>
+                                                                <span class="text-gray-400">Category</span>
+                                                                <div class="font-medium text-gray-700" x-text="formatCategory(opt.category)"></div>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-400">Ages</span>
+                                                                <div class="font-medium text-gray-700" x-text="opt.ages"></div>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-400">Schedule</span>
+                                                                <div class="font-medium text-gray-700" x-text="formatSchedule(opt.schedule_type)"></div>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-400">Price</span>
+                                                                <div class="font-bold text-gray-900" x-text="formatPrice(opt.price_cents) + '/wk'"></div>
                                                             </div>
                                                         </div>
 
-                                                        {{-- Camp info --}}
-                                                        <div class="min-w-0 flex-1">
-                                                            <div class="flex items-center gap-1">
-                                                                <span class="w-1.5 h-1.5 rounded-full shrink-0"
-                                                                      :class="categoryDot[opt.category] || 'bg-gray-400'"></span>
-                                                                <span class="text-[10px] font-semibold text-gray-900 leading-tight truncate"
-                                                                      x-text="opt.camp_name"></span>
-                                                            </div>
-                                                            <div class="flex items-center justify-between mt-0.5">
-                                                                <span class="text-[10px] font-bold" x-text="formatPrice(opt.price_cents)"></span>
-                                                                <span class="text-[9px] font-medium px-1 py-px rounded-full"
-                                                                      :class="{
-                                                                          'bg-green-100 text-green-700': opt.availability_status === 'available',
-                                                                          'bg-yellow-100 text-yellow-700': opt.availability_status === 'almost_full',
-                                                                          'bg-red-100 text-red-700': opt.availability_status === 'waitlist'
-                                                                      }"
-                                                                      x-text="shortAvail(opt)"></span>
-                                                            </div>
+                                                        {{-- Availability --}}
+                                                        <div class="mt-2 flex items-center gap-2">
+                                                            <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                                                                  :class="{
+                                                                      'bg-green-100 text-green-700': opt.availability_status === 'available',
+                                                                      'bg-yellow-100 text-yellow-700': opt.availability_status === 'almost_full',
+                                                                      'bg-red-100 text-red-700': opt.availability_status === 'waitlist'
+                                                                  }"
+                                                                  x-text="longAvail(opt)"></span>
+                                                            <template x-if="opt.lunch_provided">
+                                                                <span class="text-[10px] text-gray-500 flex items-center gap-0.5">
+                                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                                    </svg>
+                                                                    Lunch included
+                                                                </span>
+                                                            </template>
+                                                        </div>
+
+                                                        {{-- Reason --}}
+                                                        <div class="mt-2 pt-2 border-t border-gray-100">
+                                                            <p class="text-[10px] text-gray-500 italic" x-text="opt.reason"></p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -505,10 +572,26 @@ function campFinder() {
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         },
 
+        formatCategory(cat) {
+            if (!cat) return '';
+            return cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        },
+
+        formatSchedule(type) {
+            const map = { full_day: 'Full Day', half_day_am: 'Half Day (AM)', half_day_pm: 'Half Day (PM)' };
+            return map[type] || type;
+        },
+
         shortAvail(rec) {
             if (rec.availability_status === 'available') return rec.spots_remaining + ' spots';
             if (rec.availability_status === 'almost_full') return rec.spots_remaining + ' left!';
             return 'WL:' + rec.waitlist_count;
+        },
+
+        longAvail(rec) {
+            if (rec.availability_status === 'available') return rec.spots_remaining + ' spots available';
+            if (rec.availability_status === 'almost_full') return 'Almost full — ' + rec.spots_remaining + ' spots left';
+            return 'Waitlist — ' + rec.waitlist_count + ' ahead of you';
         },
 
         isSiblingOverlap(week, cIdx) {
