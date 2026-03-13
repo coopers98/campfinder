@@ -11,7 +11,8 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased">
 
-<div x-data="campFinder()" class="h-screen flex flex-col overflow-hidden">
+<div x-data="campFinder()" class="h-screen">
+  <div class="h-full flex flex-col overflow-hidden">
     {{-- Nav --}}
     <nav class="bg-white border-b border-gray-200 shrink-0">
         <div class="max-w-full mx-auto px-4 h-12 flex items-center justify-between">
@@ -98,199 +99,6 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
             <span class="text-sm font-medium text-gray-700">Re-planning summer...</span>
-        </div>
-    </div>
-
-    {{-- Copied toast --}}
-    <div x-show="showCopiedToast" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 translate-y-2"
-         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg flex items-center gap-2">
-        <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-        </svg>
-        Link copied to clipboard!
-    </div>
-
-    {{-- Review Selections slide-over --}}
-    <div x-show="showReview" x-cloak class="fixed inset-0 z-[60]" @keydown.escape.window="showReview = false">
-        {{-- Backdrop --}}
-        <div x-show="showReview"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             class="absolute inset-0 bg-black/30"
-             @click="showReview = false"></div>
-        {{-- Panel --}}
-        <div x-show="showReview"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="translate-x-full"
-             x-transition:enter-end="translate-x-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="translate-x-0"
-             x-transition:leave-end="translate-x-full"
-             class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col">
-            {{-- Header --}}
-            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900">Review Summer Plan</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Selected camps for all children</p>
-                </div>
-                <button @click="showReview = false" class="text-gray-400 hover:text-gray-600 p-1">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-
-            {{-- Body --}}
-            <div class="flex-1 overflow-y-auto px-6 py-4">
-                <template x-for="(child, cIdx) in results?.children || []" :key="cIdx">
-                    <div class="mb-6">
-                        {{-- Child header --}}
-                        <div class="flex items-center gap-2 mb-3">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-                                 :class="childColors[cIdx % childColors.length]">
-                                <span x-text="child.name.charAt(0).toUpperCase()"></span>
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-gray-900" x-text="child.name"></div>
-                                <div class="text-xs text-gray-500" x-text="'Age ' + child.age + ' · ' + child.categories.map(c => formatCategory(c)).join(', ')"></div>
-                            </div>
-                        </div>
-
-                        {{-- Week rows --}}
-                        <div class="border border-gray-200 rounded-lg overflow-hidden">
-                            <template x-for="(week, wIdx) in child.weeks" :key="week.week_start">
-                                <div class="flex items-center border-b border-gray-100 last:border-b-0"
-                                     :class="week.blocked ? 'bg-gray-50' : ''">
-                                    {{-- Week label --}}
-                                    <div class="w-20 shrink-0 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-100">
-                                        <div x-text="'Wk ' + (wIdx + 1)"></div>
-                                        <div class="text-[10px] text-gray-400" x-text="shortWeekLabel(week.week_start)"></div>
-                                    </div>
-                                    {{-- Camp info or blocked --}}
-                                    <div class="flex-1 px-3 py-2">
-                                        <template x-if="week.blocked">
-                                            <span class="text-xs text-gray-400 italic">Blocked</span>
-                                        </template>
-                                        <template x-if="!week.blocked && week.options && week.options.length > 0">
-                                            <div class="flex items-center justify-between">
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="text-xs" x-text="categoryEmoji[week.options[week.selected_index || 0].category] || '☀️'"></span>
-                                                        <span class="text-xs font-semibold text-gray-900 truncate"
-                                                              x-text="week.options[week.selected_index || 0].camp_name"></span>
-                                                    </div>
-                                                    <div class="text-[10px] text-gray-500 truncate"
-                                                         x-text="week.options[week.selected_index || 0].facility_name + ' · ' + week.options[week.selected_index || 0].neighborhood"></div>
-                                                </div>
-                                                <div class="text-xs font-bold text-gray-900 shrink-0 ml-2"
-                                                     x-text="formatPrice(week.options[week.selected_index || 0].price_cents)"></div>
-                                            </div>
-                                        </template>
-                                        <template x-if="!week.blocked && (!week.options || week.options.length === 0)">
-                                            <span class="text-xs text-gray-400 italic">No match</span>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-
-                        {{-- Child subtotal --}}
-                        <div class="flex items-center justify-between mt-2 px-1">
-                            <span class="text-xs font-medium text-gray-500" x-text="child.name + ' subtotal'"></span>
-                            <span class="text-sm font-bold text-gray-900" x-text="formatPrice(childSubtotal(child))"></span>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            {{-- Footer --}}
-            <div class="px-6 py-4 border-t border-gray-200 shrink-0 space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-bold text-gray-900">Grand Total (10 weeks)</span>
-                    <span class="text-xl font-bold text-sawyer-500" x-text="formatPrice(calcTotal())"></span>
-                </div>
-                <button @click="showRegisterModal = true"
-                        class="w-full bg-sawyer-500 hover:bg-sawyer-600 text-white font-bold py-3 rounded-xl text-sm transition-colors">
-                    Register for Camps
-                </button>
-                <button @click="sharePlan()"
-                        class="w-full bg-white border border-gray-200 hover:border-sawyer-300 text-gray-700 font-semibold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
-                    </svg>
-                    Share Plan
-                </button>
-            </div>
-        </div>
-    </div>
-
-    {{-- Register for Camps Modal --}}
-    <div x-show="showRegisterModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center"
-         @keydown.escape.window="showRegisterModal = false">
-        <div x-show="showRegisterModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             class="absolute inset-0 bg-black/40"
-             @click="showRegisterModal = false"></div>
-        <div x-show="showRegisterModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
-            <div class="w-14 h-14 bg-sawyer-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <h3 class="text-lg font-bold text-gray-900 mb-2">One-Click Registration</h3>
-            <p class="text-sm text-gray-600 mb-4">
-                This would register
-                <span class="font-semibold" x-text="results?.children?.length || 0"></span>
-                <span x-text="(results?.children?.length || 0) === 1 ? 'child' : 'children'"></span>
-                across
-                <span class="font-semibold" x-text="countSelectedWeeks()"></span>
-                camp weeks in a single transaction, including:
-            </p>
-            <ul class="text-xs text-gray-500 text-left space-y-1 mb-4 px-4">
-                <li class="flex items-start gap-2">
-                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>Secure spot reservations at each camp</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>Payment processing for <span class="font-semibold" x-text="formatPrice(calcTotal())"></span> total</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>Confirmation emails with camp details</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <svg class="w-3.5 h-3.5 text-sawyer-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>Waitlist auto-enrollment where spots are full</span>
-                </li>
-            </ul>
-            <p class="text-xs text-gray-400 italic mb-5">This is a hackathon prototype — registration is not yet connected.</p>
-            <div class="flex gap-3">
-                <button @click="showRegisterModal = false"
-                        class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                    Close
-                </button>
-                <button @click="showRegisterModal = false"
-                        class="flex-1 bg-sawyer-500 hover:bg-sawyer-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
-                    Got It!
-                </button>
-            </div>
         </div>
     </div>
 
@@ -687,6 +495,224 @@
             </div>
         </div>
     </template>
+  </div>
+
+    {{-- Review Plan Modal --}}
+    <template x-teleport="body">
+    <div x-show="showReview" x-cloak
+         style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9990;display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @keydown.escape.window="showReview = false">
+        <div x-show="showReview"
+             style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);"
+             @click="showReview = false"></div>
+        <div x-show="showReview"
+             style="position:relative;width:100%;max-width:32rem;max-height:85vh;z-index:9991;border-radius:1rem;overflow:hidden;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);"
+             class="bg-white">
+            {{-- Header --}}
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div style="width:2.5rem;height:2.5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="bg-sawyer-100">
+                        <svg style="width:1.25rem;height:1.25rem;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Summer Camp Plan</h3>
+                        <p class="text-xs text-gray-500">Summer 2026 — 10 weeks</p>
+                    </div>
+                </div>
+                <button @click="showReview = false" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <svg style="width:1.25rem;height:1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Invoice body --}}
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+                <template x-for="(child, cIdx) in results?.children || []" :key="cIdx">
+                    <div>
+                        {{-- Child name bar --}}
+                        <div class="flex items-center gap-2 mb-2 pb-2 border-b border-gray-200">
+                            <div style="width:1.5rem;height:1.5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:white;"
+                                 :class="childColors[cIdx % childColors.length]">
+                                <span x-text="child.name.charAt(0).toUpperCase()"></span>
+                            </div>
+                            <span class="text-sm font-bold text-gray-900" x-text="child.name"></span>
+                            <span class="text-xs text-gray-400" x-text="'Age ' + child.age"></span>
+                            <span class="ml-auto text-xs font-bold text-gray-900" x-text="formatPrice(childSubtotal(child))"></span>
+                        </div>
+
+                        {{-- Line items --}}
+                        <table class="w-full text-xs">
+                            <template x-for="(week, wIdx) in child.weeks" :key="week.week_start">
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-1 pr-2 text-gray-400 whitespace-nowrap w-16" x-text="shortWeekLabel(week.week_start)"></td>
+                                    <td class="py-1 pr-2">
+                                        <template x-if="week.blocked">
+                                            <span class="text-gray-300 italic">Off</span>
+                                        </template>
+                                        <template x-if="!week.blocked && week.options && week.options.length > 0">
+                                            <div class="flex items-center gap-1">
+                                                <span x-text="categoryEmoji[week.options[week.selected_index || 0].category] || '☀️'" class="text-[11px]"></span>
+                                                <span class="font-medium text-gray-800 truncate" x-text="week.options[week.selected_index || 0].camp_name"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!week.blocked && (!week.options || week.options.length === 0)">
+                                            <span class="text-gray-300 italic">No match</span>
+                                        </template>
+                                    </td>
+                                    <td class="py-1 text-right font-medium text-gray-700 whitespace-nowrap w-14">
+                                        <template x-if="!week.blocked && week.options && week.options.length > 0">
+                                            <span x-text="formatPrice(week.options[week.selected_index || 0].price_cents)"></span>
+                                        </template>
+                                        <template x-if="week.blocked || !week.options || week.options.length === 0">
+                                            <span class="text-gray-300">—</span>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                        </table>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Footer totals + actions --}}
+            <div style="flex-shrink:0;padding:1rem 1.5rem;border-top:1px solid #e5e7eb;background:#f9fafb;"
+                 class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-bold text-gray-700">Grand Total</span>
+                    <span class="text-xl font-bold text-sawyer-500" x-text="formatPrice(calcTotal())"></span>
+                </div>
+                <div class="flex gap-2">
+                    <button @click="showReview = false; showRegisterModal = true"
+                            class="flex-1 bg-sawyer-500 hover:bg-sawyer-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
+                        Register for Camps
+                    </button>
+                    <button @click="sharePlan()"
+                            class="flex-1 bg-white border border-gray-200 hover:border-sawyer-300 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                        </svg>
+                        Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </template>
+
+    {{-- Share Plan Modal --}}
+    <template x-teleport="body">
+    <div x-show="showShare" x-cloak
+         style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9992;display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @keydown.escape.window="showShare = false">
+        <div x-show="showShare"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);"
+             @click="showShare = false"></div>
+        <div x-show="showShare"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             style="position:relative;z-index:9993;width:100%;max-width:26rem;border-radius:1rem;padding:1.5rem;text-align:center;margin:0 1rem;"
+             class="bg-white shadow-2xl">
+            <div style="width:3.5rem;height:3.5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;" class="bg-sawyer-100">
+                <svg style="width:1.75rem;height:1.75rem;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">Share Your Summer Plan</h3>
+            <p class="text-sm text-gray-500 mb-4">Anyone with this link can view your camp selections.</p>
+
+            <div style="background:#f9fafb;border-radius:0.75rem;padding:0.75rem;margin-bottom:1rem;overflow:hidden;">
+                <input type="text" readonly :value="shareUrl"
+                       x-ref="shareInput"
+                       style="width:100%;font-size:0.7rem;color:#6b7280;background:transparent;text-align:center;border:none;outline:none;text-overflow:ellipsis;overflow:hidden;"
+                       @click="$refs.shareInput.select()">
+            </div>
+
+            <div class="flex gap-3">
+                <button @click="showShare = false"
+                        class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                    Close
+                </button>
+                <button @click="copyShareUrl()"
+                        class="flex-1 bg-sawyer-500 hover:bg-sawyer-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                    <svg x-show="!shareCopied" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                    </svg>
+                    <svg x-show="shareCopied" x-cloak style="width:1rem;height:1rem;color:white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span x-text="shareCopied ? 'Copied!' : 'Copy Link'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    </template>
+
+    {{-- Register for Camps Modal --}}
+    <template x-teleport="body">
+    <div x-show="showRegisterModal" x-cloak
+         style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9994;display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @keydown.escape.window="showRegisterModal = false">
+        <div x-show="showRegisterModal"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);"
+             @click="showRegisterModal = false"></div>
+        <div x-show="showRegisterModal"
+             style="position:relative;z-index:9995;width:100%;max-width:24rem;margin:0 auto;border-radius:1rem;padding:1.5rem;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);"
+             class="bg-white">
+            <div style="width:3.5rem;height:3.5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;" class="bg-sawyer-100">
+                <svg style="width:1.75rem;height:1.75rem;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">One-Click Registration</h3>
+            <p class="text-sm text-gray-600 mb-4">
+                This would register
+                <span class="font-semibold" x-text="results?.children?.length || 0"></span>
+                <span x-text="(results?.children?.length || 0) === 1 ? 'child' : 'children'"></span>
+                across
+                <span class="font-semibold" x-text="countSelectedWeeks()"></span>
+                camp weeks in a single transaction, including:
+            </p>
+            <ul class="text-xs text-gray-500 text-left space-y-1.5 mb-4 px-4">
+                <li class="flex items-start gap-2">
+                    <svg style="width:0.875rem;height:0.875rem;margin-top:0.125rem;flex-shrink:0;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Secure spot reservations at each camp</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg style="width:0.875rem;height:0.875rem;margin-top:0.125rem;flex-shrink:0;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Payment processing for <span class="font-semibold" x-text="formatPrice(calcTotal())"></span> total</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg style="width:0.875rem;height:0.875rem;margin-top:0.125rem;flex-shrink:0;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Confirmation emails with camp details</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg style="width:0.875rem;height:0.875rem;margin-top:0.125rem;flex-shrink:0;" class="text-sawyer-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Waitlist auto-enrollment where spots are full</span>
+                </li>
+            </ul>
+            <p class="text-xs text-gray-400 italic mb-5">This is a hackathon prototype — registration is not yet connected.</p>
+            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                <button @click="showRegisterModal = false"
+                        style="width:100%;padding:0.75rem;border-radius:0.75rem;font-size:0.875rem;font-weight:700;cursor:pointer;border:none;color:white;background:#ff5a52;transition:background 0.15s;"
+                        onmouseover="this.style.background='#e83e36'" onmouseout="this.style.background='#ff5a52'">
+                    Got It!
+                </button>
+                <button @click="showRegisterModal = false"
+                        style="width:100%;padding:0.625rem;border-radius:0.75rem;font-size:0.875rem;font-weight:600;cursor:pointer;border:none;color:#4b5563;background:#f3f4f6;transition:background 0.15s;"
+                        onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    </template>
 </div>
 
 <script>
@@ -701,7 +727,9 @@ function campFinder() {
         lockedCamps: {},
         currentMonth: 0,
         showReview: false,
-        showCopiedToast: false,
+        showShare: false,
+        shareUrl: '',
+        shareCopied: false,
         showRegisterModal: false,
 
         weekStarts: [
@@ -1105,18 +1133,24 @@ function campFinder() {
             };
         },
 
-        async sharePlan() {
+        sharePlan() {
             const payload = this.buildSharePayload();
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-            const url = window.location.origin + window.location.pathname + '#plan=' + encoded;
+            this.shareUrl = window.location.origin + window.location.pathname + '#plan=' + encoded;
+            this.shareCopied = false;
+            this.showShare = true;
+        },
+
+        async copyShareUrl() {
             try {
-                await navigator.clipboard.writeText(url);
-                this.showCopiedToast = true;
-                setTimeout(() => { this.showCopiedToast = false; }, 2500);
-            } catch {
-                // Fallback
-                prompt('Copy this link:', url);
+                await navigator.clipboard.writeText(this.shareUrl);
+            } catch (e) {
+                // Fallback: select the input text
+                this.$refs.shareInput.select();
+                document.execCommand('copy');
             }
+            this.shareCopied = true;
+            setTimeout(() => { this.shareCopied = false; }, 2000);
         },
 
         async loadFromHash() {
