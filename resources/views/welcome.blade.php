@@ -206,13 +206,13 @@
                             <div class="sticky left-0 z-10 bg-white border-b border-r border-gray-200 px-2 py-2 flex items-start gap-2 relative"
                                  x-data="{ showChildTip: false }"
                                  @mouseenter="showChildTip = true" @mouseleave="showChildTip = false">
-                                <div class="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 mt-0.5"
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 mt-0.5"
                                      :class="childColors[cIdx % childColors.length]">
                                     <span x-text="child.name.charAt(0).toUpperCase()"></span>
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="text-xs font-bold text-gray-900 truncate" x-text="child.name"></div>
-                                    <div class="text-[10px] text-gray-500" x-text="'Age ' + child.age"></div>
+                                    <div class="text-sm font-bold text-gray-900 truncate" x-text="child.name"></div>
+                                    <div class="text-xs text-gray-500" x-text="'Age ' + child.age"></div>
                                 </div>
 
                                 {{-- Child info tooltip --}}
@@ -255,7 +255,7 @@
 
                             {{-- Week cells (visible month only) --}}
                             <template x-for="(week, vIdx) in visibleChildWeeks(child)" :key="week.week_start">
-                                <div class="border-b border-r border-gray-100 p-1 relative"
+                                <div class="border-b border-r border-gray-100 p-1.5 relative"
                                      :class="{
                                          'bg-gray-50': week.blocked,
                                          'bg-white': !week.blocked,
@@ -264,9 +264,9 @@
                                     {{-- Blocked --}}
                                     <template x-if="week.blocked">
                                         <div class="h-full min-h-[100px] flex flex-col items-center justify-center">
-                                            <div class="text-xs text-gray-400 font-medium">Off</div>
+                                            <div class="text-sm text-gray-400 font-medium">Off</div>
                                             <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="mt-1 text-[10px] text-sawyer-500 hover:text-sawyer-700">Unblock</button>
+                                                    class="mt-1 text-xs text-sawyer-500 hover:text-sawyer-700">Unblock</button>
                                         </div>
                                     </template>
 
@@ -283,18 +283,18 @@
                                                     <template x-if="showAlsoDivider(child, week.options, oIdx)">
                                                         <div class="flex items-center gap-1.5 py-0.5 mb-0.5">
                                                             <div class="flex-1 border-t border-dashed border-gray-300"></div>
-                                                            <span class="text-[8px] text-gray-400 uppercase tracking-wide shrink-0">Also available</span>
+                                                            <span class="text-[10px] text-gray-400 uppercase tracking-wide shrink-0">Also available</span>
                                                             <div class="flex-1 border-t border-dashed border-gray-300"></div>
                                                         </div>
                                                     </template>
                                                     <div @click="selectOption(cIdx, globalWeekIndex(week.week_start), oIdx)"
-                                                         class="rounded p-1 cursor-pointer transition-all text-left"
+                                                         class="rounded px-1.5 py-1 cursor-pointer transition-all text-left"
                                                          :class="optionRowClass(week, cIdx, oIdx, opt)">
 
                                                         <div class="flex items-start gap-1">
                                                             {{-- Radio dot --}}
                                                             <div class="mt-0.5 shrink-0">
-                                                                <div class="w-3 h-3 rounded-full border-2 flex items-center justify-center"
+                                                                <div class="w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center"
                                                                      :class="oIdx === week.selected_index
                                                                         ? (week.locked ? 'border-amber-500 bg-amber-500' : 'border-sawyer-500 bg-sawyer-500')
                                                                         : 'border-gray-300'">
@@ -309,25 +309,25 @@
                                                             {{-- Camp info --}}
                                                             <div class="min-w-0 flex-1">
                                                                 <div class="flex items-center gap-1">
-                                                                    <span class="text-xs shrink-0 leading-none" x-text="categoryEmoji[opt.category] || '☀️'"></span>
-                                                                    <span class="text-[10px] font-semibold text-gray-900 leading-tight truncate"
+                                                                    <span class="text-sm shrink-0 leading-none" x-text="categoryEmoji[opt.category] || '☀️'"></span>
+                                                                    <span class="text-xs font-semibold text-gray-900 leading-tight truncate"
                                                                           x-text="opt.camp_name"></span>
                                                                     <template x-if="siblingMatchType(week, cIdx, opt) === 'camp'">
-                                                                        <span class="shrink-0 text-[8px] bg-purple-200 text-purple-700 px-1 rounded font-bold" title="Same camp available for sibling">SAME</span>
+                                                                        <span class="shrink-0 text-[10px] bg-purple-200 text-purple-700 px-1 rounded font-bold" title="Same camp available for sibling">SAME</span>
                                                                     </template>
                                                                     <template x-if="siblingMatchType(week, cIdx, opt) === 'facility'">
-                                                                        <span class="shrink-0 text-[8px] bg-purple-100 text-purple-600 px-1 rounded font-bold" title="Same facility available for sibling">FAC</span>
+                                                                        <span class="shrink-0 text-[10px] bg-purple-100 text-purple-600 px-1 rounded font-bold" title="Same facility available for sibling">FAC</span>
                                                                     </template>
                                                                 </div>
-                                                                <div class="flex items-center gap-1 mt-0.5">
-                                                                    <span class="text-[10px] font-bold" x-text="formatPrice(opt.price_cents)"></span>
+                                                                <div class="flex items-center gap-1.5 mt-0.5">
+                                                                    <span class="text-xs font-bold" x-text="formatPrice(opt.price_cents)"></span>
                                                                     <template x-if="opt.lunch_provided">
-                                                                        <span class="text-[9px] text-sawyer-500" title="Lunch included">+L</span>
+                                                                        <span class="text-[10px] text-sawyer-500" title="Lunch included">+L</span>
                                                                     </template>
                                                                     <template x-if="opt.distance_miles !== null">
-                                                                        <span class="text-[9px] text-gray-400" x-text="opt.distance_miles + 'mi'"></span>
+                                                                        <span class="text-[10px] text-gray-400" x-text="opt.distance_miles + 'mi'"></span>
                                                                     </template>
-                                                                    <span class="ml-auto text-[9px] font-medium px-1 py-px rounded-full"
+                                                                    <span class="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-full"
                                                                           :class="{
                                                                               'bg-green-100 text-green-700': opt.availability_status === 'available',
                                                                               'bg-yellow-100 text-yellow-700': opt.availability_status === 'almost_full',
@@ -431,13 +431,13 @@
                                             </template>
 
                                             {{-- Lock + Block row --}}
-                                            <div class="flex items-center justify-between px-1 pt-1 border-t border-gray-100 mt-0.5">
+                                            <div class="flex items-center justify-between px-1 pt-1.5 border-t border-gray-100 mt-1">
                                                 <button @click.stop="toggleBlock(cIdx, week.week_start)"
-                                                        class="text-[9px] font-medium px-1.5 py-0.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                        class="text-xs font-medium px-2 py-0.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                                                     Block
                                                 </button>
                                                 <button @click.stop="toggleLock(cIdx, globalWeekIndex(week.week_start))"
-                                                        class="text-[9px] font-medium px-1.5 py-0.5 rounded transition-colors"
+                                                        class="text-xs font-medium px-2 py-0.5 rounded transition-colors"
                                                         :class="week.locked
                                                             ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                                                             : 'text-gray-400 hover:text-sawyer-500 hover:bg-sawyer-50'">
@@ -450,9 +450,9 @@
                                     {{-- Empty --}}
                                     <template x-if="!week.blocked && (!week.options || week.options.length === 0)">
                                         <div class="min-h-[100px] flex flex-col items-center justify-center">
-                                            <div class="text-[10px] text-gray-300">No match</div>
+                                            <div class="text-sm text-gray-300">No match</div>
                                             <button @click="toggleBlock(cIdx, week.week_start)"
-                                                    class="mt-1 text-[10px] text-gray-400 hover:text-red-500">Block</button>
+                                                    class="mt-1 text-xs text-gray-400 hover:text-red-500">Block</button>
                                         </div>
                                     </template>
                                 </div>
