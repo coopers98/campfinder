@@ -29,7 +29,7 @@ class CampMatcher
     /**
      * Build a shortlist of top camp candidates for each child for each week.
      */
-    public function buildShortlist(array $parsedCriteria): array
+    public function buildShortlist(array $parsedCriteria, array $excludeCamps = []): array
     {
         $children = $parsedCriteria['children'];
         $borough = $parsedCriteria['borough'] ?? '';
@@ -39,10 +39,13 @@ class CampMatcher
 
         $result = [];
 
-        foreach ($children as $child) {
+        foreach ($children as $childIdx => $child) {
             $childShortlist = [];
 
             foreach ($this->summerWeeks as $weekStart) {
+                // Get excluded camp IDs for this child+week
+                $excludeIds = $excludeCamps[$childIdx][$weekStart] ?? [];
+
                 $candidates = $this->findCandidates(
                     age: $child['age'],
                     categories: $child['categories'],
@@ -50,6 +53,7 @@ class CampMatcher
                     budget: $budget,
                     schedulePref: $schedulePref,
                     weekStart: $weekStart,
+                    excludeIds: $excludeIds,
                 );
 
                 // Best waitlisted camp with a category match (separate from top-3)
@@ -85,12 +89,16 @@ class CampMatcher
         ];
     }
 
-    protected function findCandidates(int $age, array $categories, string $borough, int $budget, string $schedulePref, string $weekStart): Collection
+    protected function findCandidates(int $age, array $categories, string $borough, int $budget, string $schedulePref, string $weekStart, array $excludeIds = []): Collection
     {
         $query = Camp::with('facility')
             ->forAge($age)
             ->inWeek($weekStart)
             ->where('price_cents', '<=', $budget);
+
+        if (!empty($excludeIds)) {
+            $query->whereNotIn('id', $excludeIds);
+        }
 
         if ($schedulePref !== 'any') {
             $query->where('schedule_type', $schedulePref);

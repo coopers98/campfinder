@@ -17,6 +17,7 @@ class RecommendController extends Controller
             'parsed_criteria' => 'sometimes|array',
             'blocked_weeks' => 'sometimes|array',
             'locked_camps' => 'sometimes|array',
+            'exclude_camps' => 'sometimes|array',
         ]);
 
         try {
@@ -29,7 +30,8 @@ class RecommendController extends Controller
             }
 
             $matcher = new CampMatcher;
-            $shortlist = $matcher->buildShortlist($parsed);
+            $excludeCamps = $request->input('exclude_camps', []);
+            $shortlist = $matcher->buildShortlist($parsed, $excludeCamps);
 
             $blockedWeeks = $request->input('blocked_weeks', []);
             $lockedCamps = $request->input('locked_camps', []);

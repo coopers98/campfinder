@@ -443,18 +443,20 @@ function campFinder() {
             this.loading = true;
             this.error = null;
 
-            // Collect locked selections
+            // Collect locked selections and exclude IDs for unlocked weeks
             const locked = {};
-            for (const child of this.results.children) {
-                for (const [cIdx, c] of this.results.children.entries()) {
-                    if (!locked[cIdx]) locked[cIdx] = {};
-                    for (const week of c.weeks) {
-                        if (week.locked && week.options && week.options[week.selected_index]) {
-                            locked[cIdx][week.week_start] = week.options[week.selected_index];
-                        }
+            const excludeCamps = {};
+            for (const [cIdx, c] of this.results.children.entries()) {
+                locked[cIdx] = {};
+                excludeCamps[cIdx] = {};
+                for (const week of c.weeks) {
+                    if (week.locked && week.options && week.options[week.selected_index]) {
+                        locked[cIdx][week.week_start] = week.options[week.selected_index];
+                    } else if (!week.blocked && week.options) {
+                        // Exclude current options so re-plan shows fresh camps
+                        excludeCamps[cIdx][week.week_start] = week.options.map(o => o.camp_id);
                     }
                 }
-                break; // only need one pass
             }
 
             try {
@@ -470,6 +472,7 @@ function campFinder() {
                         parsed_criteria: this.parsedCriteria,
                         blocked_weeks: this.blockedWeeks,
                         locked_camps: locked,
+                        exclude_camps: excludeCamps,
                     }),
                 });
                 const data = await res.json();
